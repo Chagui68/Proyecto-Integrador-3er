@@ -40,12 +40,10 @@ public class MainMenuController {
     }
 
     public Pane getView() {
-        // Contenedor principal con fondo degradado
         VBox mainContainer = new VBox(25);
         mainContainer.setAlignment(Pos.CENTER);
         mainContainer.setPadding(new Insets(40));
         
-        // Fondo con gradiente
         Background gradient = new Background(new BackgroundFill(
             new javafx.scene.paint.LinearGradient(0, 0, 1, 1, true, 
                 javafx.scene.paint.CycleMethod.NO_CYCLE,
@@ -55,25 +53,20 @@ public class MainMenuController {
         
         mainContainer.setBackground(gradient);
 
-        // Header con logo simulado
         VBox header = createHeader();
         
-        // Grid de botones mejorado
         GridPane menuGrid = new GridPane();
         menuGrid.setHgap(25);
         menuGrid.setVgap(25);
         menuGrid.setAlignment(Pos.CENTER);
         menuGrid.setPadding(new Insets(30));
 
-        // Fila 1
         menuGrid.add(createMenuButton("Gestión de Estudiantes", "estudiantes", "🎓", "#3498db"), 0, 0);
         menuGrid.add(createMenuButton("Gestión de Doctores", "doctores", "👨‍⚕️", "#e74c3c"), 1, 0);
         
-        // Fila 2
         menuGrid.add(createMenuButton("Materias", "materias", "📚", "#27ae60"), 0, 1);
         menuGrid.add(createMenuButton("Horarios", "horario", "📅", "#f39c12"), 1, 1);
         
-        // Fila 3
         menuGrid.add(createMenuButton("Registros", "registro", "📝", "#9b59b6"), 0, 2);
 
         mainContainer.getChildren().addAll(header, menuGrid);
@@ -84,13 +77,11 @@ public class MainMenuController {
         VBox header = new VBox(10);
         header.setAlignment(Pos.CENTER);
         
-        // Círculo decorativo (logo simulado)
         Circle logo = new Circle(50);
         logo.setFill(Color.WHITE);
         logo.setStroke(Color.valueOf("#2c3e50"));
         logo.setStrokeWidth(3);
         
-        // Label de cruz médica (simplificado)
         Label logoLabel = new Label("✚");
         logoLabel.setFont(new Font("Arial Bold", 60));
         logoLabel.setStyle("-fx-text-fill: #2c3e50;");
@@ -112,7 +103,6 @@ public class MainMenuController {
         button.setPrefSize(220, 80);
         button.setFont(Font.font("Arial", FontWeight.BOLD, 15));
         
-        // Sombra para el botón
         DropShadow shadow = new DropShadow();
         shadow.setColor(Color.BLACK);
         shadow.setRadius(10);

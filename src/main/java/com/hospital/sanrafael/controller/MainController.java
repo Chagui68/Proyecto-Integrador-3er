@@ -16,7 +16,6 @@ public class MainController {
     public void initialize(Stage stage) {
         this.primaryStage = stage;
         
-        // Crear el controlador del menú principal y establecer la referencia
         mainMenuController = new MainMenuController(viewFactory);
         mainMenuController.setMainController(this);
         
@@ -24,7 +23,6 @@ public class MainController {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Hospital San Rafael - Sistema de Gestión");
         
-        // Cargar hoja de estilos
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
     }
 

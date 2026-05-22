@@ -33,7 +33,6 @@ public class EstudianteController {
     public Pane getView() {
         BorderPane mainPane = new BorderPane();
         
-        // Fondo con gradiente
         Background gradient = new Background(new BackgroundFill(
             new javafx.scene.paint.LinearGradient(0, 0, 1, 1, true, 
                 javafx.scene.paint.CycleMethod.NO_CYCLE,
@@ -42,7 +41,6 @@ public class EstudianteController {
             CornerRadii.EMPTY, Insets.EMPTY));
         mainPane.setBackground(gradient);
 
-        // Header
         VBox header = new VBox(10);
         header.setAlignment(Pos.CENTER);
         header.setPadding(new Insets(15));
@@ -54,7 +52,6 @@ public class EstudianteController {
         header.getChildren().add(titleLabel);
         mainPane.setTop(header);
 
-        // Tabla
         tableView = new TableView<>();
         tableView.setItems(getEstudiantesData());
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -62,10 +59,8 @@ public class EstudianteController {
         
         createColumns();
 
-        // Formulario en un panel con mejor diseño
         VBox formPane = createForm();
 
-        // Botones
         HBox buttonBar = createButtonBar();
 
         VBox bottomPanel = new VBox(15, formPane, buttonBar);
@@ -115,7 +110,6 @@ public class EstudianteController {
         grid.setVgap(10);
         grid.setPadding(new Insets(15));
         
-        // Fondo blanco semitransparente
         grid.setStyle("-fx-background-color: rgba(255, 255, 255, 0.95); -fx-background-radius: 10;");
 
         idField = createTextField();
@@ -249,30 +243,77 @@ public class EstudianteController {
 
     private void saveEstudiante() {
         try {
+            System.out.println("📝 Intentando guardar estudiante desde la interfaz...");
+            
+            // Convertir fecha al formato correcto (AAAA-MM-DD) si es necesario
+            String fechaNacimiento = convertirFecha(fechaNacimientoField.getText());
+            
             Estudiante estudiante = new Estudiante(
                 idField.getText(),
                 nombreField.getText(),
                 apellidoField.getText(),
                 emailField.getText(),
                 telefonoField.getText(),
-                fechaNacimientoField.getText(),
+                fechaNacimiento,
                 generoField.getText(),
                 direccionField.getText(),
                 carreraField.getText(),
                 Integer.parseInt(semestreField.getText()),
                 turnoField.getText()
             );
+            
             estudianteService.registrarEstudiante(estudiante);
+            
+            // Refrescar la tabla desde la base de datos
             tableView.setItems(getEstudiantesData());
             clearForm();
-            showAlert("Éxito", "Estudiante registrado correctamente");
+            showAlert("Éxito", "Estudiante registrado correctamente en PostgreSQL");
         } catch (Exception e) {
-            showAlert("Error", "Error al registrar estudiante: " + e.getMessage());
+            e.printStackTrace(); // Imprime el error completo en la consola
+            showAlert("Error", "No se pudo guardar en la base de datos:\n" + e.getMessage());
         }
+    }
+    
+    /**
+     * Convierte varios formatos de fecha al formato estándar SQL (AAAA-MM-DD)
+     * Acepta: AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA
+     */
+    private String convertirFecha(String fecha) {
+        if (fecha == null || fecha.trim().isEmpty()) {
+            return "2000-01-01"; // Valor por defecto si está vacío
+        }
+        
+        fecha = fecha.trim();
+        
+        // Si ya está en formato AAAA-MM-DD, devolverla tal cual
+        if (fecha.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return fecha;
+        }
+        
+        // Intentar convertir DD/MM/AAAA a AAAA-MM-DD
+        if (fecha.contains("/")) {
+            String[] partes = fecha.split("/");
+            if (partes.length == 3) {
+                return String.format("%s-%s-%s", partes[2], partes[1], partes[0]);
+            }
+        }
+        
+        // Intentar convertir DD-MM-AAAA a AAAA-MM-DD
+        if (fecha.contains("-") && !fecha.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            String[] partes = fecha.split("-");
+            if (partes.length == 3) {
+                return String.format("%s-%s-%s", partes[2], partes[1], partes[0]);
+            }
+        }
+        
+        // Si no coincide ningún formato, devolver la fecha original y dejar que PostgreSQL intente parsearla
+        return fecha;
     }
 
     private void updateEstudiante() {
         try {
+            System.out.println("✏️ Intentando actualizar estudiante...");
+            
             Estudiante estudiante = new Estudiante(
                 idField.getText(),
                 nombreField.getText(),
@@ -288,9 +329,10 @@ public class EstudianteController {
             );
             estudianteService.actualizarEstudiante(estudiante);
             tableView.setItems(getEstudiantesData());
-            showAlert("Éxito", "Estudiante actualizado correctamente");
+            showAlert("Éxito", "Estudiante actualizado correctamente en PostgreSQL");
         } catch (Exception e) {
-            showAlert("Error", "Error al actualizar estudiante: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "No se pudo actualizar en la base de datos:\n" + e.getMessage());
         }
     }
 
@@ -298,13 +340,15 @@ public class EstudianteController {
         try {
             String id = idField.getText();
             if (!id.isEmpty()) {
+                System.out.println("🗑️ Intentando eliminar estudiante: " + id);
                 estudianteService.eliminarEstudiante(id);
                 tableView.setItems(getEstudiantesData());
                 clearForm();
-                showAlert("Éxito", "Estudiante eliminado correctamente");
+                showAlert("Éxito", "Estudiante eliminado correctamente de PostgreSQL");
             }
         } catch (Exception e) {
-            showAlert("Error", "Error al eliminar estudiante: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "No se pudo eliminar de la base de datos:\n" + e.getMessage());
         }
     }
 
