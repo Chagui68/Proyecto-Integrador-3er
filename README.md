@@ -136,26 +136,6 @@ HospitalSanRafael/
 - **Horario**: Distribución temporal
 - **RegistroHospitalario**: Control de accesos
 
-## 🔧 Solución de Problemas
-
-### Error: "FATAL: no existe la base de datos"
-**Solución**: Verifica que hayas creado `hospital_san_rafael` en PostgreSQL.
-
-### Error: "la columna fecha_nacimiento es de tipo date"
-**Solución**: El sistema ya convierte automáticamente. Asegúrate de usar formato `AAAA-MM-DD` o `DD/MM/AAAA`.
-
-### Error: "viola la restricción check estudiante_turno_check"
-**Solución**: El campo Turno debe ser exactamente: `Mañana`, `Tarde` o `Noche`.
-
-### Error: "FATAL: la autenticación password falló"
-**Solución**: Actualiza `db.password` en `database.properties` con tu contraseña real de PostgreSQL.
-
-### La aplicación no muestra datos en pgAdmin
-**Solución**: 
-1. Asegúrate de estar conectado al puerto correcto (5432 o 5433)
-2. Refresca la vista de la tabla (F5)
-3. Ejecuta: `SELECT * FROM persona;`
-
 ## 📝 Características Destacadas
 
 - ✅ **Conexión Automática**: Detección y reconexión automática a PostgreSQL
