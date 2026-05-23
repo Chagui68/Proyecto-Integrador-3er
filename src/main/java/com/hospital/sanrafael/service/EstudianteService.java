@@ -1,6 +1,6 @@
 package com.hospital.sanrafael.service;
 
-import com.hospital.sanrafael.dao.PostgreEstudianteDAO;
+import com.hospital.sanrafael.dao.EstudianteDAO;
 import com.hospital.sanrafael.model.Estudiante;
 import com.hospital.sanrafael.model.Horario;
 import com.hospital.sanrafael.model.Materia;
@@ -8,10 +8,10 @@ import com.hospital.sanrafael.model.Materia;
 import java.util.List;
 
 public class EstudianteService {
-    private final PostgreEstudianteDAO estudianteDAO;
+    private final EstudianteDAO estudianteDAO;
 
     public EstudianteService() {
-        estudianteDAO = new PostgreEstudianteDAO();
+        estudianteDAO = new EstudianteDAO();
     }
 
     public List<Estudiante> obtenerTodosEstudiantes() {
@@ -23,7 +23,6 @@ public class EstudianteService {
     }
 
     public Estudiante registrarEstudiante(Estudiante estudiante) {
-        // Esto lanzará una excepción si falla, permitiendo al controlador manejar el error
         estudianteDAO.save(estudiante);
         return estudiante;
     }
@@ -38,12 +37,10 @@ public class EstudianteService {
     }
 
     public List<Estudiante> buscarPorCarrera(String carrera) {
-        // Implementación pendiente si se requiere filtrado avanzado
-        return obtenerTodosEstudiantes(); 
+        return obtenerTodosEstudiantes();
     }
 
     public List<Estudiante> buscarPorSemestre(int semestre) {
-        // Implementación pendiente si se requiere filtrado avanzado
         return obtenerTodosEstudiantes();
     }
 

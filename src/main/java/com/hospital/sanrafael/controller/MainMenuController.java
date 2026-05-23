@@ -6,10 +6,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -40,120 +40,147 @@ public class MainMenuController {
     }
 
     public Pane getView() {
-        VBox mainContainer = new VBox(25);
-        mainContainer.setAlignment(Pos.CENTER);
-        mainContainer.setPadding(new Insets(40));
-        
-        Background gradient = new Background(new BackgroundFill(
-            new javafx.scene.paint.LinearGradient(0, 0, 1, 1, true, 
-                javafx.scene.paint.CycleMethod.NO_CYCLE,
-                new javafx.scene.paint.Stop(0, Color.valueOf("#667eea")),
-                new javafx.scene.paint.Stop(1, Color.valueOf("#764ba2"))),
-            CornerRadii.EMPTY, Insets.EMPTY));
-        
-        mainContainer.setBackground(gradient);
+        HBox root = new HBox();
+        root.setPadding(new Insets(0));
 
-        VBox header = createHeader();
-        
-        GridPane menuGrid = new GridPane();
-        menuGrid.setHgap(25);
-        menuGrid.setVgap(25);
-        menuGrid.setAlignment(Pos.CENTER);
-        menuGrid.setPadding(new Insets(30));
+        VBox leftPanel = createLeftPanel();
+        ImageView hospitalImage = createHospitalImage();
 
-        menuGrid.add(createMenuButton("Gestión de Estudiantes", "estudiantes", "🎓", "#3498db"), 0, 0);
-        menuGrid.add(createMenuButton("Gestión de Doctores", "doctores", "👨‍⚕️", "#e74c3c"), 1, 0);
-        
-        menuGrid.add(createMenuButton("Materias", "materias", "📚", "#27ae60"), 0, 1);
-        menuGrid.add(createMenuButton("Horarios", "horario", "📅", "#f39c12"), 1, 1);
-        
-        menuGrid.add(createMenuButton("Registros", "registro", "📝", "#9b59b6"), 0, 2);
+        leftPanel.setMinWidth(420);
+        leftPanel.setMaxWidth(420);
 
-        mainContainer.getChildren().addAll(header, menuGrid);
-        return mainContainer;
+        root.getChildren().addAll(leftPanel, hospitalImage);
+        return root;
     }
 
-    private VBox createHeader() {
-        VBox header = new VBox(10);
-        header.setAlignment(Pos.CENTER);
-        
-        Circle logo = new Circle(50);
-        logo.setFill(Color.WHITE);
-        logo.setStroke(Color.valueOf("#2c3e50"));
-        logo.setStrokeWidth(3);
-        
-        Label logoLabel = new Label("✚");
-        logoLabel.setFont(new Font("Arial Bold", 60));
-        logoLabel.setStyle("-fx-text-fill: #2c3e50;");
-        
-        Label titleLabel = new Label("Hospital San Rafael");
-        titleLabel.setFont(Font.font("Arial Bold", 36));
-        titleLabel.setStyle("-fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 10, 0, 0, 2);");
-        
-        Label subtitleLabel = new Label("Sistema de Gestión Académica");
-        subtitleLabel.setFont(Font.font("Arial", 18));
-        subtitleLabel.setStyle("-fx-text-fill: #ecf0f1;");
-        
-        header.getChildren().addAll(logoLabel, titleLabel, subtitleLabel);
-        return header;
-    }
+    private VBox createLeftPanel() {
+        VBox panel = new VBox(20);
+        panel.setAlignment(Pos.CENTER);
+        panel.setPadding(new Insets(50, 30, 40, 30));
+        panel.setStyle("-fx-background-color: white;");
 
-    private Button createMenuButton(String text, String action, String icon, String color) {
-        Button button = new Button(icon + "  " + text);
-        button.setPrefSize(220, 80);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 15));
-        
-        DropShadow shadow = new DropShadow();
-        shadow.setColor(Color.BLACK);
-        shadow.setRadius(10);
-        shadow.setOffsetX(3);
-        shadow.setOffsetY(3);
-        button.setEffect(shadow);
+        VBox logoBox = new VBox(5);
+        logoBox.setAlignment(Pos.CENTER);
 
-        button.setStyle(
-            "-fx-background-color: " + color + ";" +
-            "-fx-text-fill: white;" +
-            "-fx-border-radius: 10;" +
-            "-fx-background-radius: 10;" +
-            "-fx-font-size: 15px;" +
-            "-fx-font-weight: bold;"
+        try {
+            Image logoImg = new Image(new java.io.FileInputStream("imagenes/WhatsApp Image 2026-05-23 at 7.45.54 AM.jpeg"));
+            ImageView logoView = new ImageView(logoImg);
+            logoView.setFitWidth(300);
+            logoView.setPreserveRatio(true);
+            logoBox.getChildren().add(logoView);
+        } catch (Exception e) {
+            Label logoText = new Label("🏥");
+            logoText.setFont(Font.font(60));
+            Label title = new Label("Hospital Universitario\nSan Rafael de Tunja");
+            title.setFont(Font.font("Arial Bold", 20));
+            title.setStyle("-fx-text-fill: #1a5f7a; -fx-text-alignment: center;");
+            logoBox.getChildren().addAll(logoText, title);
+        }
+
+        VBox buttonBox = new VBox(14);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(30, 0, 0, 0));
+
+        buttonBox.getChildren().addAll(
+            createMenuButton("Gestion Estudiantes", "#2C3E8F"),
+            createMenuButton("Gestion Doctores", "#27AE60"),
+            createMenuButton("Materias", "#8E44AD"),
+            createMenuButton("Horarios", "#E74C3C"),
+            createMenuButton("Registros", "#E67E22")
         );
 
-        button.setOnMouseEntered(e -> {
-            button.setStyle(
-                "-fx-background-color: derive(" + color + ", 80%);" +
-                "-fx-text-fill: white;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-font-size: 15px;" +
-                "-fx-font-weight: bold;"
-            );
-            button.setScaleX(1.05);
-            button.setScaleY(1.05);
-        });
+        HBox logoutBox = new HBox();
+        logoutBox.setAlignment(Pos.BOTTOM_RIGHT);
+        logoutBox.setPadding(new Insets(30, 0, 0, 0));
+        VBox.setVgrow(logoutBox, Priority.ALWAYS);
 
-        button.setOnMouseExited(e -> {
-            button.setStyle(
+        Button logoutBtn = new Button("Cerrar Sesión");
+        logoutBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: #e74c3c; -fx-border-radius: 8; -fx-padding: 8 20;");
+        logoutBtn.setOnMouseEntered(e -> logoutBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 20;"));
+        logoutBtn.setOnMouseExited(e -> logoutBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: #e74c3c; -fx-border-radius: 8; -fx-padding: 8 20;"));
+        logoutBtn.setOnAction(e -> {
+            if (mainController != null) mainController.navigateTo("login");
+        });
+        logoutBox.getChildren().add(logoutBtn);
+
+        panel.getChildren().addAll(logoBox, buttonBox, logoutBox);
+        return panel;
+    }
+
+    private Button createMenuButton(String text, String color) {
+        Button btn = new Button(text);
+        btn.setPrefSize(320, 60);
+        btn.setFont(Font.font("Arial", FontWeight.NORMAL, 17));
+
+        btn.setStyle(
+            "-fx-background-color: #e8e8e8;" +
+            "-fx-text-fill: #2c2c2c;" +
+            "-fx-border-radius: 30;" +
+            "-fx-background-radius: 30;" +
+            "-fx-font-size: 17px;" +
+            "-fx-cursor: hand;"
+        );
+
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle(
                 "-fx-background-color: " + color + ";" +
                 "-fx-text-fill: white;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-font-size: 15px;" +
-                "-fx-font-weight: bold;"
+                "-fx-border-radius: 30;" +
+                "-fx-background-radius: 30;" +
+                "-fx-font-size: 17px;" +
+                "-fx-cursor: hand;"
             );
-            button.setScaleX(1.0);
-            button.setScaleY(1.0);
         });
 
-        button.setOnAction(e -> {
-            System.out.println("Navegando a: " + action);
-            if (mainController != null) {
-                mainController.navigateTo(action);
-            } else {
-                System.out.println("Error: mainController es null");
+        btn.setOnMouseExited(e -> {
+            btn.setStyle(
+                "-fx-background-color: #e8e8e8;" +
+                "-fx-text-fill: #2c2c2c;" +
+                "-fx-border-radius: 30;" +
+                "-fx-background-radius: 30;" +
+                "-fx-font-size: 17px;" +
+                "-fx-cursor: hand;"
+            );
+        });
+
+        btn.setOnAction(e -> {
+            String navAction = text.toLowerCase();
+            if (text.equals("Gestion Estudiantes")) navAction = "gestión estudiantes";
+            else if (text.equals("Gestion Doctores")) navAction = "gestión doctores";
+            else if (text.equals("Registros")) navAction = "registros";
+            else if (text.equals("Materias")) navAction = "materias";
+            else if (text.equals("Horarios")) navAction = "horarios";
+            if (mainController != null) mainController.navigateTo(navAction);
+        });
+
+        return btn;
+    }
+
+    private ImageView createHospitalImage() {
+        ImageView hospitalView = new ImageView();
+        try {
+            Image hospitalImage = new Image(getClass().getResourceAsStream("/imagenes/hospital.jpeg"));
+            if (hospitalImage == null || hospitalImage.isError() || hospitalImage.getWidth() == 0) {
+                throw new Exception("Resource image error");
             }
-        });
+            hospitalView = new ImageView(hospitalImage);
+        } catch (Exception e) {
+            try {
+                Image hospitalImage = new Image(new java.io.FileInputStream("src/main/resources/imagenes/hospital.jpeg"));
+                hospitalView = new ImageView(hospitalImage);
+            } catch (Exception ex) {
+                try {
+                    Image hospitalImage = new Image(new java.io.FileInputStream("imagenes/WhatsApp Image 2026-05-23 at 7.45.51 AM.jpeg"));
+                    hospitalView = new ImageView(hospitalImage);
+                } catch (Exception ex2) {
+                    System.err.println("No se encontró la imagen del hospital");
+                    return new ImageView();
+                }
+            }
+        }
 
-        return button;
+        hospitalView.setPreserveRatio(true);
+        hospitalView.setSmooth(true);
+        return hospitalView;
     }
 }

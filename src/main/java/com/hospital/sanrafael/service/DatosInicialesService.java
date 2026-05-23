@@ -18,13 +18,10 @@ public class DatosInicialesService {
     }
 
     public void cargarDatosEjemplo() {
-        // Cargar Doctores de Ejemplo
         cargarDoctoresEjemplo();
         
-        // Cargar Materias de Ejemplo
         cargarMateriasEjemplo();
         
-        // Cargar Estudiantes de Ejemplo
         cargarEstudiantesEjemplo();
     }
 
@@ -67,7 +64,6 @@ public class DatosInicialesService {
                 doctorService.registrarDoctor(doctor4);
                 doctorService.registrarDoctor(doctor5);
                 
-                // Agregar horarios de atención
                 doctor1.agregarHorarioAtencion(new Horario("Lunes", "08:00", "12:00", "Consulta", "Dr. Carlos Mendoza", "Pabellón A"));
                 doctor1.agregarHorarioAtencion(new Horario("Miércoles", "08:00", "12:00", "Consulta", "Dr. Carlos Mendoza", "Pabellón A"));
                 doctor1.agregarHorarioAtencion(new Horario("Viernes", "08:00", "12:00", "Consulta", "Dr. Carlos Mendoza", "Pabellón A"));
@@ -148,7 +144,6 @@ public class DatosInicialesService {
                 estudianteService.registrarEstudiante(estudiante4);
                 estudianteService.registrarEstudiante(estudiante5);
                 
-                // Asignar materias a estudiantes
                 Materia materia1 = materiaService.obtenerMateriaPorCodigo("MED101");
                 Materia materia2 = materiaService.obtenerMateriaPorCodigo("MED102");
                 

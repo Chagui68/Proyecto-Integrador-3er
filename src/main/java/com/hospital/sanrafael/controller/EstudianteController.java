@@ -9,358 +9,218 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-public class EstudianteController {
-    private final ViewFactory viewFactory;
+public class EstudianteController extends BaseDashboardController {
     private final EstudianteService estudianteService;
     private TableView<Estudiante> tableView;
     private TextField idField, nombreField, apellidoField, emailField, telefonoField;
     private TextField fechaNacimientoField, generoField, direccionField;
     private TextField carreraField, semestreField, turnoField;
-    private MainController mainController;
 
     public EstudianteController(ViewFactory viewFactory) {
         this.viewFactory = viewFactory;
         this.estudianteService = new EstudianteService();
     }
 
-    public void setMainController(MainController controller) {
-        this.mainController = controller;
+    @Override protected String getSidebarColor() { return "#2C3E8F"; }
+    @Override protected String getSidebarLogo() { return "🏥 MEDjestic"; }
+    @Override protected String getSidebarLetter() { return "E"; }
+    @Override protected String getModuleName() { return "Estudiantes"; }
+    @Override protected String getModuleRole() { return "Módulo Académico"; }
+    @Override protected String getTitle() { return "Gestión de Estudiantes"; }
+
+    @Override
+    protected VBox createSidebarMenuItems() {
+        VBox menu = new VBox(5);
+        Button listBtn = sidebarBtn("📋 Listado", true);
+        Button newBtn = sidebarBtn("➕ Nuevo", false);
+        listBtn.setOnAction(e -> {});
+        newBtn.setOnAction(e -> clearForm());
+        Button backBtn = sidebarBtn("⬅️ Volver", false);
+        backBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("main"); });
+        menu.getChildren().addAll(listBtn, newBtn, backBtn);
+        return menu;
     }
 
-    public Pane getView() {
-        BorderPane mainPane = new BorderPane();
-        
-        Background gradient = new Background(new BackgroundFill(
-            new javafx.scene.paint.LinearGradient(0, 0, 1, 1, true, 
-                javafx.scene.paint.CycleMethod.NO_CYCLE,
-                new javafx.scene.paint.Stop(0, Color.valueOf("#667eea")),
-                new javafx.scene.paint.Stop(1, Color.valueOf("#764ba2"))),
-            CornerRadii.EMPTY, Insets.EMPTY));
-        mainPane.setBackground(gradient);
+    @Override
+    protected VBox createContent() {
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(25));
+        content.setStyle("-fx-background-color: #f0f4f8;");
 
-        VBox header = new VBox(10);
-        header.setAlignment(Pos.CENTER);
-        header.setPadding(new Insets(15));
-        
-        Label titleLabel = new Label("🎓 Gestión de Estudiantes");
-        titleLabel.setFont(new Font("Arial Bold", 28));
-        titleLabel.setStyle("-fx-text-fill: white; -fx-effect: dropshadow(gaussian, black, 5, 0, 0, 2);");
-        
-        header.getChildren().add(titleLabel);
-        mainPane.setTop(header);
+        HBox stats = new HBox(15);
+        int total = estudianteService.obtenerTodosEstudiantes().size();
+        stats.getChildren().addAll(
+            statCard("TOTAL", String.valueOf(total), "#2C3E8F"),
+            statCard("SEMESTRES", "10", "#27AE60"),
+            statCard("CARRERAS", "5", "#E67E22"),
+            statCard("TURNO", "Mañana/Tarde", "#E74C3C")
+        );
+
+        VBox tableSection = new VBox(10);
+        tableSection.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
+
+        Label sectionTitle = new Label("Lista de Estudiantes");
+        sectionTitle.setFont(Font.font("Arial Bold", 16));
+        sectionTitle.setStyle("-fx-text-fill: #2c3e50;");
 
         tableView = new TableView<>();
         tableView.setItems(getEstudiantesData());
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setPadding(new Insets(10));
-        
+        tableView.setPrefHeight(180);
         createColumns();
 
-        VBox formPane = createForm();
+        VBox formSection = new VBox(10);
+        formSection.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-padding: 15;");
 
-        HBox buttonBar = createButtonBar();
+        Label formTitle = new Label("Formulario de Estudiante");
+        formTitle.setFont(Font.font("Arial Bold", 14));
+        formTitle.setStyle("-fx-text-fill: #2c3e50;");
 
-        VBox bottomPanel = new VBox(15, formPane, buttonBar);
-        bottomPanel.setPadding(new Insets(15));
-        
-        mainPane.setCenter(tableView);
-        mainPane.setBottom(bottomPanel);
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(10);
+
+        idField = createField();
+        nombreField = createField();
+        apellidoField = createField();
+        emailField = createField();
+        telefonoField = createField();
+        fechaNacimientoField = createField();
+        generoField = createField();
+        direccionField = createField();
+        carreraField = createField();
+        semestreField = createField();
+        turnoField = createField();
+
+        int r = 0;
+        grid.add(fieldLabel("ID:"), 0, r); grid.add(idField, 1, r++);
+        grid.add(fieldLabel("Nombre:"), 2, 0); grid.add(nombreField, 3, 0);
+        grid.add(fieldLabel("Apellido:"), 0, r); grid.add(apellidoField, 1, r);
+        grid.add(fieldLabel("Email:"), 2, r); grid.add(emailField, 3, r++);
+        grid.add(fieldLabel("Teléfono:"), 0, r); grid.add(telefonoField, 1, r);
+        grid.add(fieldLabel("Fecha Nac.:"), 2, r); grid.add(fechaNacimientoField, 3, r++);
+        grid.add(fieldLabel("Género:"), 0, r); grid.add(generoField, 1, r);
+        grid.add(fieldLabel("Dirección:"), 2, r); grid.add(direccionField, 3, r++);
+        grid.add(fieldLabel("Carrera:"), 0, r); grid.add(carreraField, 1, r);
+        grid.add(fieldLabel("Semestre:"), 2, r); grid.add(semestreField, 3, r++);
+        grid.add(fieldLabel("Turno:"), 0, r); grid.add(turnoField, 1, r);
+
+        HBox buttons = new HBox(12);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.setPadding(new Insets(10, 0, 0, 0));
+
+        Button guardar = actionBtn("💾 Guardar", "#27AE60");
+        Button actualizar = actionBtn("✏️ Actualizar", "#F39C12");
+        Button eliminar = actionBtn("🗑️ Eliminar", "#E74C3C");
+        Button limpiar = actionBtn("🔄 Limpiar", "#95A5A6");
+
+        guardar.setOnAction(e -> save());
+        actualizar.setOnAction(e -> update());
+        eliminar.setOnAction(e -> delete());
+        limpiar.setOnAction(e -> clearForm());
+
+        buttons.getChildren().addAll(guardar, actualizar, eliminar, limpiar);
+        formSection.getChildren().addAll(formTitle, grid, buttons);
+        tableSection.getChildren().addAll(sectionTitle, tableView, formSection);
+        content.getChildren().addAll(stats, tableSection);
 
         tableView.getSelectionModel().selectedItemProperty().addListener(
-            (obs, oldSelection, newSelection) -> {
-                if (newSelection != null) {
-                    fillForm(newSelection);
-                }
-            }
+            (obs, old, sel) -> { if (sel != null) fillForm(sel); }
         );
 
-        return mainPane;
+        return content;
     }
 
     private void createColumns() {
-        TableColumn<Estudiante, String> colId = new TableColumn<>("ID");
-        colId.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getId()));
-        colId.setPrefWidth(80);
-        
-        TableColumn<Estudiante, String> colNombre = new TableColumn<>("Nombre Completo");
-        colNombre.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getNombreCompleto()));
-        colNombre.setPrefWidth(200);
-        
-        TableColumn<Estudiante, String> colCarrera = new TableColumn<>("Carrera");
-        colCarrera.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getCarrera()));
-        colCarrera.setPrefWidth(150);
-        
-        TableColumn<Estudiante, Number> colSemestre = new TableColumn<>("Semestre");
-        colSemestre.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getSemestre()));
-        colSemestre.setPrefWidth(80);
-        
-        TableColumn<Estudiante, String> colEmail = new TableColumn<>("Email");
-        colEmail.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getEmail()));
-        colEmail.setPrefWidth(200);
-
-        tableView.getColumns().addAll(colId, colNombre, colCarrera, colSemestre, colEmail);
+        TableColumn<Estudiante, String> c1 = new TableColumn<>("ID");
+        c1.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getId()));
+        TableColumn<Estudiante, String> c2 = new TableColumn<>("Nombre");
+        c2.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getNombreCompleto()));
+        TableColumn<Estudiante, String> c3 = new TableColumn<>("Carrera");
+        c3.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getCarrera()));
+        TableColumn<Estudiante, Number> c4 = new TableColumn<>("Semestre");
+        c4.setCellValueFactory(d -> new javafx.beans.property.SimpleIntegerProperty(d.getValue().getSemestre()));
+        TableColumn<Estudiante, String> c5 = new TableColumn<>("Email");
+        c5.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getEmail()));
+        tableView.getColumns().addAll(c1, c2, c3, c4, c5);
     }
 
-    private VBox createForm() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(15));
-        
-        grid.setStyle("-fx-background-color: rgba(255, 255, 255, 0.95); -fx-background-radius: 10;");
-
-        idField = createTextField();
-        nombreField = createTextField();
-        apellidoField = createTextField();
-        emailField = createTextField();
-        telefonoField = createTextField();
-        fechaNacimientoField = createTextField();
-        generoField = createTextField();
-        direccionField = createTextField();
-        carreraField = createTextField();
-        semestreField = createTextField();
-        turnoField = createTextField();
-
-        int row = 0;
-        grid.add(createLabel("ID:"), 0, row);
-        grid.add(idField, 1, row++);
-        grid.add(createLabel("Nombre:"), 0, row);
-        grid.add(nombreField, 1, row++);
-        grid.add(createLabel("Apellido:"), 0, row);
-        grid.add(apellidoField, 1, row++);
-        grid.add(createLabel("Email:"), 0, row);
-        grid.add(emailField, 1, row++);
-        grid.add(createLabel("Teléfono:"), 0, row);
-        grid.add(telefonoField, 1, row++);
-        grid.add(createLabel("Fecha Nacimiento:"), 0, row);
-        grid.add(fechaNacimientoField, 1, row++);
-        grid.add(createLabel("Género:"), 0, row);
-        grid.add(generoField, 1, row++);
-        grid.add(createLabel("Dirección:"), 0, row);
-        grid.add(direccionField, 1, row++);
-        grid.add(createLabel("Carrera:"), 0, row);
-        grid.add(carreraField, 1, row++);
-        grid.add(createLabel("Semestre:"), 0, row);
-        grid.add(semestreField, 1, row++);
-        grid.add(createLabel("Turno:"), 0, row);
-        grid.add(turnoField, 1, row++);
-
-        VBox vbox = new VBox(grid);
-        return vbox;
-    }
-
-    private Label createLabel(String text) {
-        Label label = new Label(text);
-        label.setFont(new Font("Arial Bold", 12));
-        return label;
-    }
-
-    private TextField createTextField() {
-        TextField field = new TextField();
-        field.setPrefWidth(200);
-        field.setStyle("-fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 5;");
-        return field;
-    }
-
-    private HBox createButtonBar() {
-        HBox buttonBar = new HBox(15);
-        buttonBar.setAlignment(Pos.CENTER);
-        buttonBar.setPadding(new Insets(15));
-        buttonBar.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 10;");
-        
-        Button btnNew = createButton("➕ Nuevo", "#3498db");
-        Button btnSave = createButton("💾 Guardar", "#27ae60");
-        Button btnUpdate = createButton("✏️ Actualizar", "#f39c12");
-        Button btnDelete = createButton("🗑️ Eliminar", "#e74c3c");
-        Button btnBack = createButton("⬅️ Volver", "#95a5a6");
-        
-        btnNew.setOnAction(e -> clearForm());
-        btnSave.setOnAction(e -> saveEstudiante());
-        btnUpdate.setOnAction(e -> updateEstudiante());
-        btnDelete.setOnAction(e -> deleteEstudiante());
-        btnBack.setOnAction(e -> {
-            if (mainController != null) {
-                mainController.navigateTo("main");
-            }
-        });
-
-        buttonBar.getChildren().addAll(btnNew, btnSave, btnUpdate, btnDelete, btnBack);
-        return buttonBar;
-    }
-
-    private Button createButton(String text, String color) {
-        Button button = new Button(text);
-        button.setFont(new Font("Arial Bold", 13));
-        button.setStyle(
-            "-fx-background-color: " + color + ";" +
-            "-fx-text-fill: white;" +
-            "-fx-border-radius: 5;" +
-            "-fx-background-radius: 5;" +
-            "-fx-padding: 8 15;"
-        );
-        
-        button.setOnMouseEntered(e -> 
-            button.setStyle("-fx-background-color: derive(" + color + ", 80%); -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 15;")
-        );
-        
-        button.setOnMouseExited(e -> 
-            button.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-border-radius: 5; -fx-background-radius: 5; -fx-padding: 8 15;")
-        );
-        
-        return button;
-    }
-
-    private void fillForm(Estudiante estudiante) {
-        idField.setText(estudiante.getId());
-        nombreField.setText(estudiante.getNombre());
-        apellidoField.setText(estudiante.getApellido());
-        emailField.setText(estudiante.getEmail());
-        telefonoField.setText(estudiante.getTelefono());
-        fechaNacimientoField.setText(estudiante.getFechaNacimiento());
-        generoField.setText(estudiante.getGenero());
-        direccionField.setText(estudiante.getDireccion());
-        carreraField.setText(estudiante.getCarrera());
-        semestreField.setText(String.valueOf(estudiante.getSemestre()));
-        turnoField.setText(estudiante.getTurno());
+    private void fillForm(Estudiante e) {
+        idField.setText(e.getId());
+        nombreField.setText(e.getNombre());
+        apellidoField.setText(e.getApellido());
+        emailField.setText(e.getEmail());
+        telefonoField.setText(e.getTelefono());
+        fechaNacimientoField.setText(e.getFechaNacimiento());
+        generoField.setText(e.getGenero());
+        direccionField.setText(e.getDireccion());
+        carreraField.setText(e.getCarrera());
+        semestreField.setText(String.valueOf(e.getSemestre()));
+        turnoField.setText(e.getTurno());
     }
 
     private void clearForm() {
-        idField.clear();
-        nombreField.clear();
-        apellidoField.clear();
-        emailField.clear();
-        telefonoField.clear();
-        fechaNacimientoField.clear();
-        generoField.clear();
-        direccionField.clear();
-        carreraField.clear();
-        semestreField.clear();
-        turnoField.clear();
+        idField.clear(); nombreField.clear(); apellidoField.clear(); emailField.clear();
+        telefonoField.clear(); fechaNacimientoField.clear(); generoField.clear();
+        direccionField.clear(); carreraField.clear(); semestreField.clear(); turnoField.clear();
     }
 
-    private void saveEstudiante() {
+    private void save() {
         try {
-            System.out.println("📝 Intentando guardar estudiante desde la interfaz...");
-            
-            // Convertir fecha al formato correcto (AAAA-MM-DD) si es necesario
-            String fechaNacimiento = convertirFecha(fechaNacimientoField.getText());
-            
-            Estudiante estudiante = new Estudiante(
-                idField.getText(),
-                nombreField.getText(),
-                apellidoField.getText(),
-                emailField.getText(),
-                telefonoField.getText(),
-                fechaNacimiento,
-                generoField.getText(),
-                direccionField.getText(),
-                carreraField.getText(),
-                Integer.parseInt(semestreField.getText()),
-                turnoField.getText()
-            );
-            
-            estudianteService.registrarEstudiante(estudiante);
-            
-            // Refrescar la tabla desde la base de datos
+            String fn = convertirFecha(fechaNacimientoField.getText());
+            Estudiante e = new Estudiante(idField.getText(), nombreField.getText(), apellidoField.getText(),
+                emailField.getText(), telefonoField.getText(), fn, generoField.getText(),
+                direccionField.getText(), carreraField.getText(), Integer.parseInt(semestreField.getText()), turnoField.getText());
+            estudianteService.registrarEstudiante(e);
             tableView.setItems(getEstudiantesData());
             clearForm();
-            showAlert("Éxito", "Estudiante registrado correctamente en PostgreSQL");
-        } catch (Exception e) {
-            e.printStackTrace(); // Imprime el error completo en la consola
-            showAlert("Error", "No se pudo guardar en la base de datos:\n" + e.getMessage());
+            show("Éxito", "Estudiante registrado");
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
-    }
-    
-    /**
-     * Convierte varios formatos de fecha al formato estándar SQL (AAAA-MM-DD)
-     * Acepta: AAAA-MM-DD, DD/MM/AAAA, DD-MM-AAAA
-     */
-    private String convertirFecha(String fecha) {
-        if (fecha == null || fecha.trim().isEmpty()) {
-            return "2000-01-01"; // Valor por defecto si está vacío
-        }
-        
-        fecha = fecha.trim();
-        
-        // Si ya está en formato AAAA-MM-DD, devolverla tal cual
-        if (fecha.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            return fecha;
-        }
-        
-        // Intentar convertir DD/MM/AAAA a AAAA-MM-DD
-        if (fecha.contains("/")) {
-            String[] partes = fecha.split("/");
-            if (partes.length == 3) {
-                return String.format("%s-%s-%s", partes[2], partes[1], partes[0]);
-            }
-        }
-        
-        // Intentar convertir DD-MM-AAAA a AAAA-MM-DD
-        if (fecha.contains("-") && !fecha.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            String[] partes = fecha.split("-");
-            if (partes.length == 3) {
-                return String.format("%s-%s-%s", partes[2], partes[1], partes[0]);
-            }
-        }
-        
-        // Si no coincide ningún formato, devolver la fecha original y dejar que PostgreSQL intente parsearla
-        return fecha;
     }
 
-    private void updateEstudiante() {
+    private void update() {
         try {
-            System.out.println("✏️ Intentando actualizar estudiante...");
-            
-            Estudiante estudiante = new Estudiante(
-                idField.getText(),
-                nombreField.getText(),
-                apellidoField.getText(),
-                emailField.getText(),
-                telefonoField.getText(),
-                fechaNacimientoField.getText(),
-                generoField.getText(),
-                direccionField.getText(),
-                carreraField.getText(),
-                Integer.parseInt(semestreField.getText()),
-                turnoField.getText()
-            );
-            estudianteService.actualizarEstudiante(estudiante);
+            Estudiante e = new Estudiante(idField.getText(), nombreField.getText(), apellidoField.getText(),
+                emailField.getText(), telefonoField.getText(), fechaNacimientoField.getText(), generoField.getText(),
+                direccionField.getText(), carreraField.getText(), Integer.parseInt(semestreField.getText()), turnoField.getText());
+            estudianteService.actualizarEstudiante(e);
             tableView.setItems(getEstudiantesData());
-            showAlert("Éxito", "Estudiante actualizado correctamente en PostgreSQL");
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Error", "No se pudo actualizar en la base de datos:\n" + e.getMessage());
+            show("Éxito", "Estudiante actualizado");
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
     }
 
-    private void deleteEstudiante() {
+    private void delete() {
         try {
             String id = idField.getText();
             if (!id.isEmpty()) {
-                System.out.println("🗑️ Intentando eliminar estudiante: " + id);
                 estudianteService.eliminarEstudiante(id);
                 tableView.setItems(getEstudiantesData());
                 clearForm();
-                showAlert("Éxito", "Estudiante eliminado correctamente de PostgreSQL");
+                show("Éxito", "Estudiante eliminado");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Error", "No se pudo eliminar de la base de datos:\n" + e.getMessage());
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
+    }
+
+    private String convertirFecha(String fecha) {
+        if (fecha == null || fecha.trim().isEmpty()) return "2000-01-01";
+        fecha = fecha.trim();
+        if (fecha.matches("\\d{4}-\\d{2}-\\d{2}")) return fecha;
+        if (fecha.contains("/")) {
+            String[] p = fecha.split("/");
+            if (p.length == 3) return String.format("%s-%s-%s", p[2], p[1], p[0]);
+        }
+        return fecha;
     }
 
     private ObservableList<Estudiante> getEstudiantesData() {
         return FXCollections.observableArrayList(estudianteService.obtenerTodosEstudiantes());
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }

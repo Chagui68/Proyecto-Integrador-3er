@@ -11,251 +11,210 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 
-public class DoctorController {
-    private final ViewFactory viewFactory;
+public class DoctorController extends BaseDashboardController {
     private final DoctorService doctorService;
     private TableView<Doctor> tableView;
     private TextField idField, nombreField, apellidoField, emailField, telefonoField;
     private TextField fechaNacimientoField, generoField, direccionField;
-    private TextField especialidadField, numeroColegiadoField, areaAsignadaField, aniosExperienciaField;
+    private TextField especialidadField, colegiadoField, areaField, experienciaField;
 
     public DoctorController(ViewFactory viewFactory) {
         this.viewFactory = viewFactory;
         this.doctorService = new DoctorService();
     }
 
-    public Pane getView() {
-        BorderPane mainPane = new BorderPane();
-        mainPane.setStyle("-fx-background-color: #ecf0f1;");
+    @Override protected String getSidebarColor() { return "#2C3E8F"; }
+    @Override protected String getSidebarLogo() { return "🏥 MEDjestic"; }
+    @Override protected String getSidebarLetter() { return "D"; }
+    @Override protected String getModuleName() { return "Doctores"; }
+    @Override protected String getModuleRole() { return "Módulo Médico"; }
+    @Override protected String getTitle() { return "Gestión de Doctores"; }
 
-        Label titleLabel = new Label("Gestión de Doctores");
-        titleLabel.setFont(new Font("Arial Bold", 24));
-        titleLabel.setStyle("-fx-text-fill: #2c3e50;");
-        titleLabel.setPadding(new Insets(10));
+    @Override
+    protected VBox createSidebarMenuItems() {
+        VBox menu = new VBox(5);
+        Button listBtn = sidebarBtn("📋 Listado", true);
+        Button newBtn = sidebarBtn("➕ Nuevo", false);
+        listBtn.setOnAction(e -> {});
+        newBtn.setOnAction(e -> clearForm());
+        Button backBtn = sidebarBtn("⬅️ Volver", false);
+        backBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("main"); });
+        menu.getChildren().addAll(listBtn, newBtn, backBtn);
+        return menu;
+    }
+
+    @Override
+    protected VBox createContent() {
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(25));
+        content.setStyle("-fx-background-color: #f0f4f8;");
+
+        HBox stats = new HBox(15);
+        int total = doctorService.obtenerTodosDoctores().size();
+        stats.getChildren().addAll(
+            statCard("TOTAL", String.valueOf(total), "#2C3E8F"),
+            statCard("ESPECIALIDADES", "8", "#27AE60"),
+            statCard("ÁREAS", "4", "#E67E22"),
+            statCard("EXPERIENCIA", "5+ años", "#E74C3C")
+        );
+
+        VBox tableSection = new VBox(10);
+        tableSection.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
+
+        Label sectionTitle = new Label("Lista de Doctores");
+        sectionTitle.setFont(Font.font("Arial Bold", 16));
+        sectionTitle.setStyle("-fx-text-fill: #2c3e50;");
 
         tableView = new TableView<>();
         tableView.setItems(getDoctoresData());
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-
+        tableView.setPrefHeight(180);
         createColumns();
 
-        VBox formPane = createForm();
+        VBox formSection = new VBox(10);
+        formSection.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-padding: 15;");
 
-        HBox buttonBar = new HBox(10);
-        buttonBar.setAlignment(Pos.CENTER);
-        buttonBar.setPadding(new Insets(10));
-        
-        Button btnNew = new Button("Nuevo");
-        Button btnSave = new Button("Guardar");
-        Button btnUpdate = new Button("Actualizar");
-        Button btnDelete = new Button("Eliminar");
-        Button btnBack = new Button("Volver");
-        
-        btnNew.setOnAction(e -> clearForm());
-        btnSave.setOnAction(e -> saveDoctor());
-        btnUpdate.setOnAction(e -> updateDoctor());
-        btnDelete.setOnAction(e -> deleteDoctor());
-        btnBack.setOnAction(e -> {
-            if (mainController != null) {
-                mainController.navigateTo("main");
-            }
-        });
+        Label formTitle = new Label("Formulario de Doctor");
+        formTitle.setFont(Font.font("Arial Bold", 14));
+        formTitle.setStyle("-fx-text-fill: #2c3e50;");
 
-        buttonBar.getChildren().addAll(btnNew, btnSave, btnUpdate, btnDelete, btnBack);
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(10);
 
-        mainPane.setTop(titleLabel);
-        mainPane.setCenter(tableView);
-        mainPane.setBottom(new VBox(10, formPane, buttonBar));
-        VBox.setMargin(formPane, new Insets(10));
-        VBox.setMargin(buttonBar, new Insets(10));
+        idField = createField();
+        nombreField = createField();
+        apellidoField = createField();
+        emailField = createField();
+        telefonoField = createField();
+        fechaNacimientoField = createField();
+        generoField = createField();
+        direccionField = createField();
+        especialidadField = createField();
+        colegiadoField = createField();
+        areaField = createField();
+        experienciaField = createField();
+
+        int r = 0;
+        grid.add(fieldLabel("ID:"), 0, r); grid.add(idField, 1, r++);
+        grid.add(fieldLabel("Nombre:"), 2, 0); grid.add(nombreField, 3, 0);
+        grid.add(fieldLabel("Apellido:"), 0, r); grid.add(apellidoField, 1, r);
+        grid.add(fieldLabel("Email:"), 2, r); grid.add(emailField, 3, r++);
+        grid.add(fieldLabel("Teléfono:"), 0, r); grid.add(telefonoField, 1, r);
+        grid.add(fieldLabel("Fecha Nac.:"), 2, r); grid.add(fechaNacimientoField, 3, r++);
+        grid.add(fieldLabel("Género:"), 0, r); grid.add(generoField, 1, r);
+        grid.add(fieldLabel("Dirección:"), 2, r); grid.add(direccionField, 3, r++);
+        grid.add(fieldLabel("Especialidad:"), 0, r); grid.add(especialidadField, 1, r);
+        grid.add(fieldLabel("N° Colegiado:"), 2, r); grid.add(colegiadoField, 3, r++);
+        grid.add(fieldLabel("Área:"), 0, r); grid.add(areaField, 1, r);
+        grid.add(fieldLabel("Años Exp.:"), 2, r); grid.add(experienciaField, 3, r++);
+
+        HBox buttons = new HBox(12);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.setPadding(new Insets(10, 0, 0, 0));
+
+        Button guardar = actionBtn("💾 Guardar", "#27AE60");
+        Button actualizar = actionBtn("✏️ Actualizar", "#F39C12");
+        Button eliminar = actionBtn("🗑️ Eliminar", "#E74C3C");
+        Button limpiar = actionBtn("🔄 Limpiar", "#95A5A6");
+
+        guardar.setOnAction(e -> save());
+        actualizar.setOnAction(e -> update());
+        eliminar.setOnAction(e -> delete());
+        limpiar.setOnAction(e -> clearForm());
+
+        buttons.getChildren().addAll(guardar, actualizar, eliminar, limpiar);
+        formSection.getChildren().addAll(formTitle, grid, buttons);
+        tableSection.getChildren().addAll(sectionTitle, tableView, formSection);
+        content.getChildren().addAll(stats, tableSection);
 
         tableView.getSelectionModel().selectedItemProperty().addListener(
-            (obs, oldSelection, newSelection) -> {
-                if (newSelection != null) {
-                    fillForm(newSelection);
-                }
-            }
+            (obs, old, sel) -> { if (sel != null) fillForm(sel); }
         );
 
-        return mainPane;
+        return content;
     }
 
     private void createColumns() {
-        TableColumn<Doctor, String> colId = new TableColumn<>("ID");
-        colId.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getId()));
-        
-        TableColumn<Doctor, String> colNombre = new TableColumn<>("Nombre");
-        colNombre.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getNombreCompleto()));
-        
-        TableColumn<Doctor, String> colEspecialidad = new TableColumn<>("Especialidad");
-        colEspecialidad.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getEspecialidad()));
-        
-        TableColumn<Doctor, String> colColegiado = new TableColumn<>("N° Colegiado");
-        colColegiado.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getNumeroColegiado()));
-        
-        TableColumn<Doctor, String> colArea = new TableColumn<>("Área Asignada");
-        colArea.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getAreaAsignada()));
-
-        tableView.getColumns().addAll(colId, colNombre, colEspecialidad, colColegiado, colArea);
+        TableColumn<Doctor, String> c1 = new TableColumn<>("ID");
+        c1.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getId()));
+        TableColumn<Doctor, String> c2 = new TableColumn<>("Nombre");
+        c2.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getNombreCompleto()));
+        TableColumn<Doctor, String> c3 = new TableColumn<>("Especialidad");
+        c3.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getEspecialidad()));
+        TableColumn<Doctor, String> c4 = new TableColumn<>("N° Colegiado");
+        c4.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getNumeroColegiado()));
+        TableColumn<Doctor, String> c5 = new TableColumn<>("Área");
+        c5.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getAreaAsignada()));
+        tableView.getColumns().addAll(c1, c2, c3, c4, c5);
     }
 
-    private VBox createForm() {
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10));
-
-        idField = new TextField();
-        nombreField = new TextField();
-        apellidoField = new TextField();
-        emailField = new TextField();
-        telefonoField = new TextField();
-        fechaNacimientoField = new TextField();
-        generoField = new TextField();
-        direccionField = new TextField();
-        especialidadField = new TextField();
-        numeroColegiadoField = new TextField();
-        areaAsignadaField = new TextField();
-        aniosExperienciaField = new TextField();
-
-        int row = 0;
-        grid.add(new Label("ID:"), 0, row);
-        grid.add(idField, 1, row++);
-        grid.add(new Label("Nombre:"), 0, row);
-        grid.add(nombreField, 1, row++);
-        grid.add(new Label("Apellido:"), 0, row);
-        grid.add(apellidoField, 1, row++);
-        grid.add(new Label("Email:"), 0, row);
-        grid.add(emailField, 1, row++);
-        grid.add(new Label("Teléfono:"), 0, row);
-        grid.add(telefonoField, 1, row++);
-        grid.add(new Label("Fecha Nacimiento:"), 0, row);
-        grid.add(fechaNacimientoField, 1, row++);
-        grid.add(new Label("Género:"), 0, row);
-        grid.add(generoField, 1, row++);
-        grid.add(new Label("Dirección:"), 0, row);
-        grid.add(direccionField, 1, row++);
-        grid.add(new Label("Especialidad:"), 0, row);
-        grid.add(especialidadField, 1, row++);
-        grid.add(new Label("N° Colegiado:"), 0, row);
-        grid.add(numeroColegiadoField, 1, row++);
-        grid.add(new Label("Área Asignada:"), 0, row);
-        grid.add(areaAsignadaField, 1, row++);
-        grid.add(new Label("Años Experiencia:"), 0, row);
-        grid.add(aniosExperienciaField, 1, row++);
-
-        VBox vbox = new VBox(grid);
-        vbox.setStyle("-fx-background-color: white; -fx-border-radius: 5; -fx-background-radius: 5;");
-        return vbox;
-    }
-
-    private void fillForm(Doctor doctor) {
-        idField.setText(doctor.getId());
-        nombreField.setText(doctor.getNombre());
-        apellidoField.setText(doctor.getApellido());
-        emailField.setText(doctor.getEmail());
-        telefonoField.setText(doctor.getTelefono());
-        fechaNacimientoField.setText(doctor.getFechaNacimiento());
-        generoField.setText(doctor.getGenero());
-        direccionField.setText(doctor.getDireccion());
-        especialidadField.setText(doctor.getEspecialidad());
-        numeroColegiadoField.setText(doctor.getNumeroColegiado());
-        areaAsignadaField.setText(doctor.getAreaAsignada());
-        aniosExperienciaField.setText(String.valueOf(doctor.getAniosExperiencia()));
+    private void fillForm(Doctor d) {
+        idField.setText(d.getId());
+        nombreField.setText(d.getNombre());
+        apellidoField.setText(d.getApellido());
+        emailField.setText(d.getEmail());
+        telefonoField.setText(d.getTelefono());
+        fechaNacimientoField.setText(d.getFechaNacimiento());
+        generoField.setText(d.getGenero());
+        direccionField.setText(d.getDireccion());
+        especialidadField.setText(d.getEspecialidad());
+        colegiadoField.setText(d.getNumeroColegiado());
+        areaField.setText(d.getAreaAsignada());
+        experienciaField.setText(String.valueOf(d.getAniosExperiencia()));
     }
 
     private void clearForm() {
-        idField.clear();
-        nombreField.clear();
-        apellidoField.clear();
-        emailField.clear();
-        telefonoField.clear();
-        fechaNacimientoField.clear();
-        generoField.clear();
-        direccionField.clear();
-        especialidadField.clear();
-        numeroColegiadoField.clear();
-        areaAsignadaField.clear();
-        aniosExperienciaField.clear();
+        idField.clear(); nombreField.clear(); apellidoField.clear(); emailField.clear();
+        telefonoField.clear(); fechaNacimientoField.clear(); generoField.clear();
+        direccionField.clear(); especialidadField.clear(); colegiadoField.clear();
+        areaField.clear(); experienciaField.clear();
     }
 
-    private void saveDoctor() {
+    private void save() {
         try {
-            Doctor doctor = new Doctor(
-                idField.getText(),
-                nombreField.getText(),
-                apellidoField.getText(),
-                emailField.getText(),
-                telefonoField.getText(),
-                fechaNacimientoField.getText(),
-                generoField.getText(),
-                direccionField.getText(),
-                especialidadField.getText(),
-                numeroColegiadoField.getText(),
-                areaAsignadaField.getText(),
-                Integer.parseInt(aniosExperienciaField.getText())
-            );
-            doctorService.registrarDoctor(doctor);
+            Doctor d = new Doctor(idField.getText(), nombreField.getText(), apellidoField.getText(),
+                emailField.getText(), telefonoField.getText(), fechaNacimientoField.getText(), generoField.getText(),
+                direccionField.getText(), especialidadField.getText(), colegiadoField.getText(),
+                areaField.getText(), Integer.parseInt(experienciaField.getText()));
+            doctorService.registrarDoctor(d);
             tableView.setItems(getDoctoresData());
             clearForm();
-            showAlert("Éxito", "Doctor registrado correctamente");
-        } catch (Exception e) {
-            showAlert("Error", "Error al registrar doctor: " + e.getMessage());
+            show("Éxito", "Doctor registrado");
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
     }
 
-    private void updateDoctor() {
+    private void update() {
         try {
-            Doctor doctor = new Doctor(
-                idField.getText(),
-                nombreField.getText(),
-                apellidoField.getText(),
-                emailField.getText(),
-                telefonoField.getText(),
-                fechaNacimientoField.getText(),
-                generoField.getText(),
-                direccionField.getText(),
-                especialidadField.getText(),
-                numeroColegiadoField.getText(),
-                areaAsignadaField.getText(),
-                Integer.parseInt(aniosExperienciaField.getText())
-            );
-            doctorService.actualizarDoctor(doctor);
+            Doctor d = new Doctor(idField.getText(), nombreField.getText(), apellidoField.getText(),
+                emailField.getText(), telefonoField.getText(), fechaNacimientoField.getText(), generoField.getText(),
+                direccionField.getText(), especialidadField.getText(), colegiadoField.getText(),
+                areaField.getText(), Integer.parseInt(experienciaField.getText()));
+            doctorService.actualizarDoctor(d);
             tableView.setItems(getDoctoresData());
-            showAlert("Éxito", "Doctor actualizado correctamente");
-        } catch (Exception e) {
-            showAlert("Error", "Error al actualizar doctor: " + e.getMessage());
+            show("Éxito", "Doctor actualizado");
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
     }
 
-    private void deleteDoctor() {
+    private void delete() {
         try {
             String id = idField.getText();
             if (!id.isEmpty()) {
                 doctorService.eliminarDoctor(id);
                 tableView.setItems(getDoctoresData());
                 clearForm();
-                showAlert("Éxito", "Doctor eliminado correctamente");
+                show("Éxito", "Doctor eliminado");
             }
-        } catch (Exception e) {
-            showAlert("Error", "Error al eliminar doctor: " + e.getMessage());
+        } catch (Exception ex) {
+            show("Error", "Error: " + ex.getMessage());
         }
     }
 
     private ObservableList<Doctor> getDoctoresData() {
         return FXCollections.observableArrayList(doctorService.obtenerTodosDoctores());
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private MainController mainController;
-    public void setMainController(MainController controller) {
-        this.mainController = controller;
     }
 }
