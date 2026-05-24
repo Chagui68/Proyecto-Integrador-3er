@@ -2,36 +2,38 @@ package com.hospital.sanrafael;
 
 import com.hospital.sanrafael.controller.MainController;
 import com.hospital.sanrafael.database.DatabaseConnection;
+import com.hospital.sanrafael.database.DatabaseInitializer;
 import com.hospital.sanrafael.view.FXViewFactory;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-    
+
     @Override
     public void start(Stage primaryStage) {
         try {
+            DatabaseInitializer.ensureTablesExist();
+
             if (DatabaseConnection.testConnection()) {
-                System.out.println("✅ Conexión a PostgreSQL exitosa");
+                System.out.println("Connection to PostgreSQL successful");
             } else {
-                System.out.println("⚠️  No se pudo conectar a PostgreSQL");
-                System.out.println("   La aplicación usará almacenamiento local (archivos .dat)");
+                System.out.println("Could not connect to PostgreSQL");
+                System.out.println("The application will use local storage (.dat files)");
             }
-            
+
             MainController mainController = new MainController(new FXViewFactory());
             mainController.initialize(primaryStage);
-            primaryStage.setTitle("Hospital San Rafael - Sistema de Gestión");
+            primaryStage.setTitle("Hospital San Rafael - Management System");
             primaryStage.show();
         } catch (Exception e) {
-            System.err.println("Error al iniciar la aplicación: " + e.getMessage());
+            System.err.println("Error starting application: " + e.getMessage());
             e.printStackTrace();
-            
-            // Si falla todo, mostrar mensaje y continuar con almacenamiento local
-            System.out.println("\n⚠️  Iniciando en modo offline (sin base de datos)");
+
+            System.out.println("\nStarting in offline mode (without database)");
             try {
                 MainController mainController = new MainController(new FXViewFactory());
                 mainController.initialize(primaryStage);
-                primaryStage.setTitle("Hospital San Rafael - Modo Offline");
+                primaryStage.setTitle("Hospital San Rafael - Offline Mode");
                 primaryStage.show();
             } catch (Exception ex) {
                 ex.printStackTrace();

@@ -5,9 +5,9 @@ import javafx.scene.layout.Pane;
 
 public interface ViewFactory {
     Pane createMainMenuView();
-    Scene createEstudianteScene();
+    Scene createStudentScene();
     Scene createDoctorScene();
-    Scene createMateriasScene();
-    Scene createHorarioScene();
-    Scene createRegistroEscena();
+    Scene createSubjectsScene();
+    Scene createScheduleScene();
+    Scene createRegistryScene();
 }

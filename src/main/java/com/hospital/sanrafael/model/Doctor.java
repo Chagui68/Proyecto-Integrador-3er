@@ -4,74 +4,63 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Doctor extends Persona implements Serializable {
+public class Doctor extends Person implements Serializable {
     private static final long serialVersionUID = 1L;
-    
-    private String especialidad;
-    private String numeroColegiado;
-    private String areaAsignada;
-    private int aniosExperiencia;
-    private List<String> estudiantesAsignados;
-    private List<Horario> horarioAtencion;
+
+    private String specialty;
+    private String licenseNumber;
+    private String assignedArea;
+    private int yearsExperience;
+    private List<String> assignedStudents;
+    private List<Schedule> careSchedule;
 
     public Doctor() {
-        this.estudiantesAsignados = new ArrayList<>();
-        this.horarioAtencion = new ArrayList<>();
+        this.assignedStudents = new ArrayList<>();
+        this.careSchedule = new ArrayList<>();
     }
 
-    public Doctor(String id, String nombre, String apellido, String email, String telefono,
-                  String fechaNacimiento, String genero, String direccion,
-                  String especialidad, String numeroColegiado, String areaAsignada, int aniosExperiencia) {
-        super(id, nombre, apellido, email, telefono, fechaNacimiento, genero, direccion);
-        this.especialidad = especialidad;
-        this.numeroColegiado = numeroColegiado;
-        this.areaAsignada = areaAsignada;
-        this.aniosExperiencia = aniosExperiencia;
-        this.estudiantesAsignados = new ArrayList<>();
-        this.horarioAtencion = new ArrayList<>();
+    public Doctor(String id, String firstName, String lastName, String email, String phone,
+                  String birthDate, String gender, String address,
+                  String specialty, String licenseNumber, String assignedArea, int yearsExperience) {
+        super(id, firstName, lastName, email, phone, birthDate, gender, address);
+        this.specialty = specialty;
+        this.licenseNumber = licenseNumber;
+        this.assignedArea = assignedArea;
+        this.yearsExperience = yearsExperience;
+        this.assignedStudents = new ArrayList<>();
+        this.careSchedule = new ArrayList<>();
     }
 
-    public String getEspecialidad() { return especialidad; }
-    public void setEspecialidad(String especialidad) { this.especialidad = especialidad; }
+    public String getSpecialty() { return specialty; }
+    public void setSpecialty(String specialty) { this.specialty = specialty; }
+    public String getLicenseNumber() { return licenseNumber; }
+    public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
+    public String getAssignedArea() { return assignedArea; }
+    public void setAssignedArea(String assignedArea) { this.assignedArea = assignedArea; }
+    public int getYearsExperience() { return yearsExperience; }
+    public void setYearsExperience(int yearsExperience) { this.yearsExperience = yearsExperience; }
 
-    public String getNumeroColegiado() { return numeroColegiado; }
-    public void setNumeroColegiado(String numeroColegiado) { this.numeroColegiado = numeroColegiado; }
+    public List<String> getAssignedStudents() { return assignedStudents; }
+    public void setAssignedStudents(List<String> assignedStudents) { this.assignedStudents = assignedStudents; }
 
-    public String getAreaAsignada() { return areaAsignada; }
-    public void setAreaAsignada(String areaAsignada) { this.areaAsignada = areaAsignada; }
-
-    public int getAniosExperiencia() { return aniosExperiencia; }
-    public void setAniosExperiencia(int aniosExperiencia) { this.aniosExperiencia = aniosExperiencia; }
-
-    public List<String> getEstudiantesAsignados() { return estudiantesAsignados; }
-    public void setEstudiantesAsignados(List<String> estudiantesAsignados) { 
-        this.estudiantesAsignados = estudiantesAsignados; 
-    }
-
-    public void agregarEstudianteSupervisado(String idEstudiante) {
-        if (!estudiantesAsignados.contains(idEstudiante)) {
-            estudiantesAsignados.add(idEstudiante);
+    public void addAssignedStudent(String studentId) {
+        if (!assignedStudents.contains(studentId)) {
+            assignedStudents.add(studentId);
         }
     }
 
-    public void eliminarEstudianteSupervisado(String idEstudiante) {
-        estudiantesAsignados.remove(idEstudiante);
+    public void removeAssignedStudent(String studentId) {
+        assignedStudents.remove(studentId);
     }
 
-    public List<Horario> getHorarioAtencion() { return horarioAtencion; }
-    public void setHorarioAtencion(List<Horario> horarioAtencion) { this.horarioAtencion = horarioAtencion; }
-
-    public void agregarHorarioAtencion(Horario horario) {
-        this.horarioAtencion.add(horario);
-    }
-
-    public void eliminarHorarioAtencion(Horario horario) {
-        this.horarioAtencion.remove(horario);
-    }
+    public List<Schedule> getCareSchedule() { return careSchedule; }
+    public void setCareSchedule(List<Schedule> careSchedule) { this.careSchedule = careSchedule; }
+    public void addCareSchedule(Schedule schedule) { this.careSchedule.add(schedule); }
+    public void removeCareSchedule(Schedule schedule) { this.careSchedule.remove(schedule); }
 
     @Override
     public String toString() {
-        return String.format("Dr. %s %s - Especialidad: %s - Colegiado: %s", 
-                           getNombre(), getApellido(), especialidad, numeroColegiado);
+        return String.format("Dr. %s %s - Specialty: %s - License: %s",
+                getFirstName(), getLastName(), specialty, licenseNumber);
     }
 }

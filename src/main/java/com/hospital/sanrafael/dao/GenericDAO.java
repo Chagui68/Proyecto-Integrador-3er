@@ -1,5 +1,6 @@
 package com.hospital.sanrafael.dao;
 
+import com.hospital.sanrafael.service.EncryptionUtils;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class GenericDAO<T extends Serializable> {
 
     public List<T> getAll() {
         List<T> list = new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+        try (ObjectInputStream ois = new ObjectInputStream(EncryptionUtils.decryptStream(new FileInputStream(filePath)))) {
             while (true) {
                 try {
                     @SuppressWarnings("unchecked")
@@ -27,7 +28,6 @@ public class GenericDAO<T extends Serializable> {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            // File doesn't exist or is empty, return empty list
         }
         return list;
     }
@@ -39,7 +39,7 @@ public class GenericDAO<T extends Serializable> {
     }
 
     public void saveAll(List<T> list) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(EncryptionUtils.encryptStream(new FileOutputStream(filePath)))) {
             for (T entity : list) {
                 oos.writeObject(entity);
             }

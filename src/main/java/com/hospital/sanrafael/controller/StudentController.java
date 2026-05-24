@@ -1,7 +1,8 @@
 package com.hospital.sanrafael.controller;
 
-import com.hospital.sanrafael.model.Doctor;
-import com.hospital.sanrafael.service.DoctorService;
+import com.hospital.sanrafael.model.Shift;
+import com.hospital.sanrafael.model.Student;
+import com.hospital.sanrafael.service.StudentService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,24 +12,25 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 
-public class DoctorController extends BaseDashboardController {
-    private final DoctorService doctorService;
-    private TableView<Doctor> tableView;
+public class StudentController extends BaseDashboardController {
+    private final StudentService studentService;
+    private TableView<Student> tableView;
     private TextField idField, firstNameField, lastNameField, emailField, phoneField;
     private TextField birthDateField, genderField, addressField;
-    private TextField specialtyField, licenseField, areaField, experienceField;
+    private TextField careerField, semesterField;
+    private ComboBox<Shift> shiftField;
 
-    public DoctorController(ViewFactory viewFactory) {
+    public StudentController(ViewFactory viewFactory) {
         this.viewFactory = viewFactory;
-        this.doctorService = new DoctorService();
+        this.studentService = new StudentService();
     }
 
-    @Override protected String getSidebarColor() { return "#2C3E8F"; }
+    @Override protected String getSidebarColor() { return "#27AE60"; }
     @Override protected String getSidebarLogo() { return "MEDjestic"; }
-    @Override protected String getSidebarLetter() { return "D"; }
-    @Override protected String getModuleName() { return "Doctores"; }
-    @Override protected String getModuleRole() { return "M\u00F3dulo M\u00E9dico"; }
-    @Override protected String getTitle() { return "Gesti\u00F3n de Doctores"; }
+    @Override protected String getSidebarLetter() { return "E"; }
+    @Override protected String getModuleName() { return "Estudiantes"; }
+    @Override protected String getModuleRole() { return "M\u00F3dulo Acad\u00E9mico"; }
+    @Override protected String getTitle() { return "Gesti\u00F3n de Estudiantes"; }
 
     @Override
     protected VBox createSidebarMenuItems() {
@@ -55,23 +57,23 @@ public class DoctorController extends BaseDashboardController {
         content.setStyle("-fx-background-color: #f0f4f8;");
 
         HBox stats = new HBox(15);
-        int total = doctorService.getAllDoctors().size();
+        int total = studentService.getAllStudents().size();
         stats.getChildren().addAll(
             statCard("TOTAL", String.valueOf(total), "#2C3E8F"),
-            statCard("ESPECIALIDADES", "8", "#27AE60"),
-            statCard("\u00C1REAS", "4", "#E67E22"),
-            statCard("EXPERIENCIA", "5+ a\u00F1os", "#E74C3C")
+            statCard("SEMESTRES", "10", "#27AE60"),
+            statCard("CARRERAS", "5", "#E67E22"),
+            statCard("TURNOS", "Ma\u00F1ana/Tarde/Noche", "#E74C3C")
         );
 
         VBox tableSection = new VBox(10);
         tableSection.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
 
-        Label sectionTitle = new Label("Lista de Doctores");
+        Label sectionTitle = new Label("Lista de Estudiantes");
         sectionTitle.setFont(Font.font("Arial Bold", 16));
         sectionTitle.setStyle("-fx-text-fill: #2c3e50;");
 
         tableView = new TableView<>();
-        tableView.setItems(getDoctorsData());
+        tableView.setItems(getStudentsData());
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setPrefHeight(180);
         createColumns();
@@ -79,7 +81,7 @@ public class DoctorController extends BaseDashboardController {
         VBox formSection = new VBox(10);
         formSection.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 10; -fx-padding: 15;");
 
-        Label formTitle = new Label("Formulario de Doctor");
+        Label formTitle = new Label("Formulario de Estudiante");
         formTitle.setFont(Font.font("Arial Bold", 14));
         formTitle.setStyle("-fx-text-fill: #2c3e50;");
 
@@ -95,10 +97,12 @@ public class DoctorController extends BaseDashboardController {
         birthDateField = createField();
         genderField = createField();
         addressField = createField();
-        specialtyField = createField();
-        licenseField = createField();
-        areaField = createField();
-        experienceField = createField();
+        careerField = createField();
+        semesterField = createField();
+        shiftField = new ComboBox<>();
+        shiftField.setPrefWidth(180);
+        shiftField.getItems().setAll(Shift.values());
+        shiftField.setStyle("-fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 4; -fx-border-color: #ddd; -fx-font-size: 13px;");
 
         int r = 0;
         grid.add(fieldLabel("Nombre:"), 0, r); grid.add(firstNameField, 1, r);
@@ -108,10 +112,9 @@ public class DoctorController extends BaseDashboardController {
         grid.add(fieldLabel("Fecha Nac.:"), 0, r); grid.add(birthDateField, 1, r);
         grid.add(fieldLabel("G\u00E9nero:"), 2, r); grid.add(genderField, 3, r++);
         grid.add(fieldLabel("Direcci\u00F3n:"), 0, r); grid.add(addressField, 1, r);
-        grid.add(fieldLabel("Especialidad:"), 2, r); grid.add(specialtyField, 3, r++);
-        grid.add(fieldLabel("N\u00B0 Colegiado:"), 0, r); grid.add(licenseField, 1, r);
-        grid.add(fieldLabel("\u00C1rea:"), 2, r); grid.add(areaField, 3, r++);
-        grid.add(fieldLabel("A\u00F1os Exp.:"), 0, r); grid.add(experienceField, 1, r);
+        grid.add(fieldLabel("Carrera:"), 2, r); grid.add(careerField, 3, r++);
+        grid.add(fieldLabel("Semestre:"), 0, r); grid.add(semesterField, 1, r);
+        grid.add(fieldLabel("Turno:"), 2, r); grid.add(shiftField, 3, r++);
 
         HBox buttons = new HBox(12);
         buttons.setAlignment(Pos.CENTER);
@@ -140,39 +143,37 @@ public class DoctorController extends BaseDashboardController {
     }
 
     private void createColumns() {
-        TableColumn<Doctor, String> c1 = new TableColumn<>("ID");
+        TableColumn<Student, String> c1 = new TableColumn<>("ID");
         c1.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getId()));
-        TableColumn<Doctor, String> c2 = new TableColumn<>("Nombre");
+        TableColumn<Student, String> c2 = new TableColumn<>("Nombre");
         c2.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getFullName()));
-        TableColumn<Doctor, String> c3 = new TableColumn<>("Especialidad");
-        c3.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getSpecialty()));
-        TableColumn<Doctor, String> c4 = new TableColumn<>("N\u00B0 Colegiado");
-        c4.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getLicenseNumber()));
-        TableColumn<Doctor, String> c5 = new TableColumn<>("\u00C1rea");
-        c5.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getAssignedArea()));
+        TableColumn<Student, String> c3 = new TableColumn<>("Carrera");
+        c3.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getCareer()));
+        TableColumn<Student, Number> c4 = new TableColumn<>("Semestre");
+        c4.setCellValueFactory(d -> new javafx.beans.property.SimpleIntegerProperty(d.getValue().getSemester()));
+        TableColumn<Student, String> c5 = new TableColumn<>("Email");
+        c5.setCellValueFactory(d -> new javafx.beans.property.SimpleStringProperty(d.getValue().getEmail()));
         tableView.getColumns().addAll(c1, c2, c3, c4, c5);
     }
 
-    private void fillForm(Doctor d) {
-        idField.setText(d.getId());
-        firstNameField.setText(d.getFirstName());
-        lastNameField.setText(d.getLastName());
-        emailField.setText(d.getEmail());
-        phoneField.setText(d.getPhone());
-        birthDateField.setText(d.getBirthDate());
-        genderField.setText(d.getGender());
-        addressField.setText(d.getAddress());
-        specialtyField.setText(d.getSpecialty());
-        licenseField.setText(d.getLicenseNumber());
-        areaField.setText(d.getAssignedArea());
-        experienceField.setText(String.valueOf(d.getYearsExperience()));
+    private void fillForm(Student s) {
+        idField.setText(s.getId());
+        firstNameField.setText(s.getFirstName());
+        lastNameField.setText(s.getLastName());
+        emailField.setText(s.getEmail());
+        phoneField.setText(s.getPhone());
+        birthDateField.setText(s.getBirthDate());
+        genderField.setText(s.getGender());
+        addressField.setText(s.getAddress());
+        careerField.setText(s.getCareer());
+        semesterField.setText(String.valueOf(s.getSemester()));
+        shiftField.setValue(s.getShift());
     }
 
     private void clearForm() {
         idField.clear(); firstNameField.clear(); lastNameField.clear(); emailField.clear();
         phoneField.clear(); birthDateField.clear(); genderField.clear();
-        addressField.clear(); specialtyField.clear(); licenseField.clear();
-        areaField.clear(); experienceField.clear();
+        addressField.clear(); careerField.clear(); semesterField.clear(); shiftField.setValue(null);
     }
 
     private void save() {
@@ -181,14 +182,18 @@ public class DoctorController extends BaseDashboardController {
                 show("Error", "Complete todos los campos obligatorios");
                 return;
             }
-            Doctor d = new Doctor(null, firstNameField.getText(), lastNameField.getText(),
-                    emailField.getText(), phoneField.getText(), convertDate(birthDateField.getText()), genderField.getText(),
-                    addressField.getText(), specialtyField.getText(), licenseField.getText(),
-                    areaField.getText(), parseInt(experienceField.getText(), 0));
-            doctorService.registerDoctor(d);
-            tableView.setItems(getDoctorsData());
+            if (shiftField.getValue() == null) {
+                show("Error", "Seleccione un turno");
+                return;
+            }
+            String fn = convertDate(birthDateField.getText());
+            Student s = new Student(null, firstNameField.getText(), lastNameField.getText(),
+                    emailField.getText(), phoneField.getText(), fn, genderField.getText(),
+                    addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
+            studentService.registerStudent(s);
+            tableView.setItems(getStudentsData());
             clearForm();
-            show("\u00C9xito", "Doctor registrado");
+            show("\u00C9xito", "Estudiante registrado");
         } catch (Exception ex) {
             show("Error", "Error: " + ex.getMessage());
         }
@@ -197,16 +202,19 @@ public class DoctorController extends BaseDashboardController {
     private void update() {
         try {
             if (idField.getText() == null || idField.getText().isEmpty()) {
-                show("Error", "Seleccione un doctor de la tabla");
+                show("Error", "Seleccione un estudiante de la tabla");
                 return;
             }
-            Doctor d = new Doctor(idField.getText(), firstNameField.getText(), lastNameField.getText(),
+            if (shiftField.getValue() == null) {
+                show("Error", "Seleccione un turno");
+                return;
+            }
+            Student s = new Student(idField.getText(), firstNameField.getText(), lastNameField.getText(),
                     emailField.getText(), phoneField.getText(), convertDate(birthDateField.getText()), genderField.getText(),
-                    addressField.getText(), specialtyField.getText(), licenseField.getText(),
-                    areaField.getText(), parseInt(experienceField.getText(), 0));
-            doctorService.updateDoctor(d);
-            tableView.setItems(getDoctorsData());
-            show("\u00C9xito", "Doctor actualizado");
+                    addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
+            studentService.updateStudent(s);
+            tableView.setItems(getStudentsData());
+            show("\u00C9xito", "Estudiante actualizado");
         } catch (Exception ex) {
             show("Error", "Error: " + ex.getMessage());
         }
@@ -216,13 +224,13 @@ public class DoctorController extends BaseDashboardController {
         try {
             String id = idField.getText();
             if (id == null || id.isEmpty()) {
-                show("Error", "Seleccione un doctor de la tabla");
+                show("Error", "Seleccione un estudiante de la tabla");
                 return;
             }
-            doctorService.deleteDoctor(id);
-            tableView.setItems(getDoctorsData());
+            studentService.deleteStudent(id);
+            tableView.setItems(getStudentsData());
             clearForm();
-            show("\u00C9xito", "Doctor eliminado");
+            show("\u00C9xito", "Estudiante eliminado");
         } catch (Exception ex) {
             show("Error", "Error: " + ex.getMessage());
         }
@@ -233,7 +241,7 @@ public class DoctorController extends BaseDashboardController {
             || lastNameField.getText().trim().isEmpty()
             || emailField.getText().trim().isEmpty()
             || phoneField.getText().trim().isEmpty()
-            || specialtyField.getText().trim().isEmpty();
+            || careerField.getText().trim().isEmpty();
     }
 
     private int parseInt(String val, int def) {
@@ -252,7 +260,7 @@ public class DoctorController extends BaseDashboardController {
         return date;
     }
 
-    private ObservableList<Doctor> getDoctorsData() {
-        return FXCollections.observableArrayList(doctorService.getAllDoctors());
+    private ObservableList<Student> getStudentsData() {
+        return FXCollections.observableArrayList(studentService.getAllStudents());
     }
 }

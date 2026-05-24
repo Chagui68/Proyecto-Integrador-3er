@@ -16,7 +16,6 @@ public abstract class BaseDashboardController {
     protected MainController mainController;
     protected ViewFactory viewFactory;
 
-    // --- abstract configuration ---
     protected abstract String getSidebarColor();
     protected abstract String getSidebarLogo();
     protected abstract String getSidebarLetter();
@@ -90,8 +89,8 @@ public abstract class BaseDashboardController {
         Region sp = new Region();
         HBox.setHgrow(sp, Priority.ALWAYS);
 
-        Button volver = topBtn();
-        volver.setOnAction(e -> { if (mainController != null) mainController.navigateTo("main"); });
+        Button backBtn = topBtn();
+        backBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("main"); });
 
         Circle c = new Circle(17);
         c.setFill(Color.valueOf(getSidebarColor()));
@@ -99,14 +98,12 @@ public abstract class BaseDashboardController {
         l.setFont(Font.font("Arial Bold", 13));
         l.setStyle("-fx-text-fill: white;");
 
-        bar.getChildren().addAll(title, sp, volver, new StackPane(c, l));
+        bar.getChildren().addAll(title, sp, backBtn, new StackPane(c, l));
         return bar;
     }
 
-    // --- common helpers ---
-
     protected Button topBtn() {
-        Button btn = new Button("⬅️ Volver");
+        Button btn = new Button("Volver");
         String c = getSidebarColor();
         btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + c + "; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: " + c + "; -fx-border-radius: 8; -fx-padding: 8 18;");
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + c + "; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 18;"));
