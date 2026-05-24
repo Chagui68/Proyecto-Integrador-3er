@@ -1,5 +1,6 @@
 package com.hospital.sanrafael.controller;
 
+import com.hospital.sanrafael.model.User;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -7,6 +8,8 @@ import javafx.stage.Stage;
 public class MainController {
     private final ViewFactory viewFactory;
     private Stage primaryStage;
+    private User currentUser;
+    private String doctorMenuMode = "menu";
 
     public MainController(ViewFactory viewFactory) {
         this.viewFactory = viewFactory;
@@ -20,9 +23,14 @@ public class MainController {
 
         Scene scene = new Scene(loginController.getView(), 1400, 750);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Hospital San Rafael - Sistema de Gestión");
+        primaryStage.setTitle("Hospital San Rafael - Management System");
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
     }
+
+    public User getCurrentUser() { return currentUser; }
+    public void setCurrentUser(User user) { this.currentUser = user; }
+    public String getDoctorMenuMode() { return doctorMenuMode; }
+    public void setDoctorMenuMode(String mode) { this.doctorMenuMode = mode; }
 
     public void navigateTo(String view) {
         Scene scene = null;
@@ -44,30 +52,35 @@ public class MainController {
                     mainMenuController.setMainController(this);
                     scene = new Scene(mainMenuController.getView(), 1400, 750);
                     break;
-                case "gestión estudiantes":
-                    EstudianteController estudianteController = new EstudianteController(viewFactory);
-                    estudianteController.setMainController(this);
-                    scene = new Scene(estudianteController.getView(), 1400, 750);
+                case "students":
+                    StudentController studentController = new StudentController(viewFactory);
+                    studentController.setMainController(this);
+                    scene = new Scene(studentController.getView(), 1400, 750);
                     break;
-                case "gestión doctores":
+                case "doctors":
                     DoctorController doctorController = new DoctorController(viewFactory);
                     doctorController.setMainController(this);
                     scene = new Scene(doctorController.getView(), 1400, 750);
                     break;
-                case "registros":
-                    RegistroController registroController = new RegistroController(viewFactory);
-                    registroController.setMainController(this);
-                    scene = new Scene(registroController.getView(), 1400, 750);
+                case "records":
+                    RegistryController registryController = new RegistryController(viewFactory);
+                    registryController.setMainController(this);
+                    scene = new Scene(registryController.getView(), 1400, 750);
                     break;
-                case "materias":
-                    MateriasController materiasController = new MateriasController(viewFactory);
-                    materiasController.setMainController(this);
-                    scene = new Scene(materiasController.getView(), 1400, 750);
+                case "subjects":
+                    SubjectsController subjectsController = new SubjectsController(viewFactory);
+                    subjectsController.setMainController(this);
+                    scene = new Scene(subjectsController.getView(), 1400, 750);
                     break;
-                case "horarios":
-                    HorarioController horarioController = new HorarioController(viewFactory);
-                    horarioController.setMainController(this);
-                    scene = new Scene(horarioController.getView(), 1400, 750);
+                case "schedules":
+                    ScheduleController scheduleController = new ScheduleController(viewFactory);
+                    scheduleController.setMainController(this);
+                    scene = new Scene(scheduleController.getView(), 1400, 750);
+                    break;
+                case "doctor-menu":
+                    DoctorMenuController doctorMenuController = new DoctorMenuController(viewFactory);
+                    doctorMenuController.setMainController(this);
+                    scene = new Scene(doctorMenuController.getView(), 1400, 750);
                     break;
                 default:
                     MainMenuController mmc = new MainMenuController(viewFactory);
@@ -81,7 +94,7 @@ public class MainController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("Error al navegar a: " + view);
+            System.err.println("Error navigating to: " + view);
         }
     }
 }

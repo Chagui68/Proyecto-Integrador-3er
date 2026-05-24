@@ -2,11 +2,10 @@ package com.hospital.sanrafael.view;
 
 import com.hospital.sanrafael.controller.*;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 
 public class FXViewFactory implements ViewFactory {
-    
+
     @Override
     public Pane createMainMenuView() {
         MainMenuController controller = new MainMenuController(this);
@@ -14,8 +13,8 @@ public class FXViewFactory implements ViewFactory {
     }
 
     @Override
-    public Scene createEstudianteScene() {
-        EstudianteController controller = new EstudianteController(this);
+    public Scene createStudentScene() {
+        StudentController controller = new StudentController(this);
         return new Scene(controller.getView(), 900, 600);
     }
 
@@ -26,20 +25,20 @@ public class FXViewFactory implements ViewFactory {
     }
 
     @Override
-    public Scene createMateriasScene() {
-        MateriasController controller = new MateriasController(this);
+    public Scene createSubjectsScene() {
+        SubjectsController controller = new SubjectsController(this);
         return new Scene(controller.getView(), 900, 600);
     }
 
     @Override
-    public Scene createHorarioScene() {
-        HorarioController controller = new HorarioController(this);
+    public Scene createScheduleScene() {
+        ScheduleController controller = new ScheduleController(this);
         return new Scene(controller.getView(), 900, 600);
     }
 
     @Override
-    public Scene createRegistroEscena() {
-        RegistroController controller = new RegistroController(this);
+    public Scene createRegistryScene() {
+        RegistryController controller = new RegistryController(this);
         return new Scene(controller.getView(), 900, 600);
     }
 }

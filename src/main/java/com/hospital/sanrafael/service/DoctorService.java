@@ -1,84 +1,112 @@
 package com.hospital.sanrafael.service;
 
 import com.hospital.sanrafael.dao.DoctorDAO;
+import com.hospital.sanrafael.dao.PostgreDoctorDAO;
+import com.hospital.sanrafael.database.DatabaseConnection;
 import com.hospital.sanrafael.model.Doctor;
-import com.hospital.sanrafael.model.Horario;
+import com.hospital.sanrafael.model.Schedule;
 
 import java.util.List;
 
 public class DoctorService {
-    private final DoctorDAO doctorDAO;
+    private final DoctorDAO fileDAO;
+    private final PostgreDoctorDAO dbDAO;
+    private final boolean useDatabase;
 
     public DoctorService() {
-        doctorDAO = new DoctorDAO();
+        this.fileDAO = new DoctorDAO();
+        this.dbDAO = new PostgreDoctorDAO();
+        this.useDatabase = DatabaseConnection.testConnection();
     }
 
-    public List<Doctor> obtenerTodosDoctores() {
-        return doctorDAO.getAll();
+    public List<Doctor> getAllDoctors() {
+        return useDatabase ? dbDAO.getAll() : fileDAO.getAll();
     }
 
-    public Doctor obtenerDoctorPorId(String id) {
-        return doctorDAO.getById(id);
+    public Doctor getDoctorById(String id) {
+        return useDatabase ? dbDAO.getById(id) : fileDAO.getById(id);
     }
 
-    public Doctor obtenerDoctorPorNumeroColegiado(String numeroColegiado) {
-        return doctorDAO.getByNumeroColegiado(numeroColegiado);
+    public Doctor getDoctorByLicenseNumber(String licenseNumber) {
+        return useDatabase ? dbDAO.getByLicenseNumber(licenseNumber) : fileDAO.getByLicenseNumber(licenseNumber);
     }
 
-    public Doctor registrarDoctor(Doctor doctor) {
-        if (doctorDAO.getById(doctor.getId()) != null) {
-            throw new IllegalArgumentException("Ya existe un doctor con ese ID");
+    public Doctor registerDoctor(Doctor doctor) {
+        doctor.setId(generateNextDoctorId());
+        if (useDatabase) {
+            dbDAO.save(doctor);
+        } else {
+            fileDAO.save(doctor);
         }
-        doctorDAO.save(doctor);
         return doctor;
     }
 
-    public Doctor actualizarDoctor(Doctor doctor) {
-        if (doctorDAO.getById(doctor.getId()) == null) {
-            throw new IllegalArgumentException("No existe un doctor con ese ID");
+    private String generateNextDoctorId() {
+        List<Doctor> all = getAllDoctors();
+        int max = 0;
+        for (Doctor d : all) {
+            String id = d.getId();
+            if (id != null && id.startsWith("D")) {
+                try {
+                    int n = Integer.parseInt(id.substring(1));
+                    if (n > max) max = n;
+                } catch (NumberFormatException e) {}
+            }
         }
-        doctorDAO.update(doctor);
+        return "D" + String.format("%03d", max + 1);
+    }
+
+    public Doctor updateDoctor(Doctor doctor) {
+        if (useDatabase) {
+            dbDAO.update(doctor);
+        } else {
+            fileDAO.update(doctor);
+        }
         return doctor;
     }
 
-    public void eliminarDoctor(String id) {
-        doctorDAO.delete(id);
-    }
-
-    public List<Doctor> buscarPorEspecialidad(String especialidad) {
-        return doctorDAO.getByEspecialidad(especialidad);
-    }
-
-    public void asignarEstudianteADoctor(String idDoctor, String idEstudiante) {
-        Doctor doctor = doctorDAO.getById(idDoctor);
-        if (doctor != null) {
-            doctor.agregarEstudianteSupervisado(idEstudiante);
-            doctorDAO.update(doctor);
+    public void deleteDoctor(String id) {
+        if (useDatabase) {
+            dbDAO.delete(id);
+        } else {
+            fileDAO.delete(id);
         }
     }
 
-    public void eliminarEstudianteDeDoctor(String idDoctor, String idEstudiante) {
-        Doctor doctor = doctorDAO.getById(idDoctor);
+    public List<Doctor> searchBySpecialty(String specialty) {
+        return useDatabase ? dbDAO.getBySpecialty(specialty) : fileDAO.getBySpecialty(specialty);
+    }
+
+    public void assignStudentToDoctor(String doctorId, String studentId) {
+        Doctor doctor = getDoctorById(doctorId);
         if (doctor != null) {
-            doctor.eliminarEstudianteSupervisado(idEstudiante);
-            doctorDAO.update(doctor);
+            doctor.addAssignedStudent(studentId);
+            updateDoctor(doctor);
         }
     }
 
-    public void agregarHorarioAtencion(Doctor doctor, Horario horario) {
-        doctor.agregarHorarioAtencion(horario);
-        doctorDAO.update(doctor);
-    }
-
-    public void eliminarHorarioAtencion(Doctor doctor, Horario horario) {
-        doctor.eliminarHorarioAtencion(horario);
-        doctorDAO.update(doctor);
-    }
-
-    public List<Horario> obtenerHorarioAtencion(String idDoctor) {
-        Doctor doctor = doctorDAO.getById(idDoctor);
+    public void removeStudentFromDoctor(String doctorId, String studentId) {
+        Doctor doctor = getDoctorById(doctorId);
         if (doctor != null) {
-            return doctor.getHorarioAtencion();
+            doctor.removeAssignedStudent(studentId);
+            updateDoctor(doctor);
+        }
+    }
+
+    public void addCareSchedule(Doctor doctor, Schedule schedule) {
+        doctor.addCareSchedule(schedule);
+        updateDoctor(doctor);
+    }
+
+    public void removeCareSchedule(Doctor doctor, Schedule schedule) {
+        doctor.removeCareSchedule(schedule);
+        updateDoctor(doctor);
+    }
+
+    public List<Schedule> getCareSchedule(String doctorId) {
+        Doctor doctor = getDoctorById(doctorId);
+        if (doctor != null) {
+            return doctor.getCareSchedule();
         }
         return List.of();
     }

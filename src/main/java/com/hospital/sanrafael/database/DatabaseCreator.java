@@ -8,10 +8,6 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.SQLException;
 
-/**
- * Clase para crear automáticamente la base de datos y tablas
- * Ejecutar esta clase antes de usar la aplicación
- */
 public class DatabaseCreator {
 
     private static final String HOST = "localhost";
@@ -19,157 +15,148 @@ public class DatabaseCreator {
     private static final String DB_NAME = "hospital_san_rafael";
     private static final String USERNAME = "postgres";
     private static final String PASSWORD = "postgres";
-    
-    // URL de conexión sin especificar base de datos
+
     private static final String BASE_URL = "jdbc:postgresql://" + HOST + ":" + PORT + "/postgres";
 
     public static void main(String[] args) {
         System.out.println("==========================================");
-        System.out.println("  Creador de Base de Datos");
+        System.out.println("  Database Creator");
         System.out.println("  Hospital San Rafael");
         System.out.println("==========================================\n");
 
         try {
-            // Paso 1: Crear la base de datos si no existe
-            crearBaseDeDatos();
-            
-            // Paso 2: Conectar a la base de datos creada
-            Connection conn = conectarABaseDeDatos();
-            
+            createDatabase();
+            Connection conn = connectToDatabase();
+
             if (conn != null) {
-                System.out.println("\n✅ Base de datos lista para usar!");
-                System.out.println("   Nombre: " + DB_NAME);
-                System.out.println("   Usuario: " + USERNAME);
-                System.out.println("\nAhora puedes ejecutar la aplicación JavaFX.");
+                System.out.println("\nDatabase ready to use!");
+                System.out.println("   Name: " + DB_NAME);
+                System.out.println("   User: " + USERNAME);
+                System.out.println("\nYou can now run the JavaFX application.");
                 conn.close();
             }
-            
+
         } catch (Exception e) {
-            System.err.println("\n❌ Error: " + e.getMessage());
-            System.out.println("\nSolución:");
-            System.out.println("1. Verifica que PostgreSQL esté instalado");
-            System.out.println("2. Verifica que PostgreSQL esté corriendo");
-            System.out.println("3. Revisa que la contraseña sea correcta");
-            System.out.println("4. Ejecuta pgAdmin y crea la BD manualmente");
+            System.err.println("\nError: " + e.getMessage());
+            System.out.println("\nSolution:");
+            System.out.println("1. Verify PostgreSQL is installed");
+            System.out.println("2. Verify PostgreSQL is running");
+            System.out.println("3. Check that the password is correct");
+            System.out.println("4. Run pgAdmin and create the DB manually");
             e.printStackTrace();
         }
     }
 
-    private static void crearBaseDeDatos() throws SQLException {
-        System.out.println("Paso 1: Verificando/Creando base de datos...");
-        
+    private static void createDatabase() throws SQLException {
+        System.out.println("Step 1: Checking/Creating database...");
+
         String sql = "SELECT datname FROM pg_database WHERE datname = '" + DB_NAME + "'";
-        
+
         try (Connection conn = DriverManager.getConnection(BASE_URL, USERNAME, PASSWORD);
              Statement stmt = conn.createStatement()) {
-            
+
             var rs = stmt.executeQuery(sql);
-            
+
             if (rs.next()) {
-                System.out.println("✅ La base de datos '" + DB_NAME + "' ya existe");
+                System.out.println("Database '" + DB_NAME + "' already exists");
             } else {
-                System.out.println("📝 Creando base de datos '" + DB_NAME + "'...");
-                
-                String createDB = "CREATE DATABASE " + DB_NAME + 
+                System.out.println("Creating database '" + DB_NAME + "'...");
+
+                String createDB = "CREATE DATABASE " + DB_NAME +
                     " WITH OWNER = " + USERNAME +
                     " ENCODING = 'UTF8'" +
                     " LC_COLLATE = 'Spanish_Spain.1252'" +
                     " LC_CTYPE = 'Spanish_Spain.1252'" +
                     " CONNECTION LIMIT = -1";
-                
+
                 stmt.execute(createDB);
-                System.out.println("✅ Base de datos creada exitosamente");
+                System.out.println("Database created successfully");
             }
         }
     }
 
-    private static Connection conectarABaseDeDatos() throws SQLException, IOException {
-        System.out.println("\nPaso 2: Conectando a la base de datos...");
-        
+    private static Connection connectToDatabase() throws SQLException, IOException {
+        System.out.println("\nStep 2: Connecting to the database...");
+
         String dbUrl = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB_NAME;
-        
+
         Connection conn = DriverManager.getConnection(dbUrl, USERNAME, PASSWORD);
-        System.out.println("✅ Conexión exitosa a: " + dbUrl);
-        
-        // Leer y ejecutar el script SQL
-        System.out.println("\nPaso 3: Ejecutando script de tablas...");
-        ejecutarScript(conn, "database/script.sql");
-        
+        System.out.println("Successful connection to: " + dbUrl);
+
+        System.out.println("\nStep 3: Executing table script...");
+        executeScript(conn, "database/script.sql");
+
         return conn;
     }
 
-    private static void ejecutarScript(Connection conn, String scriptPath) throws SQLException, IOException {
-        // Intentar diferentes rutas posibles
-        String[] posiblesRutas = {
+    private static void executeScript(Connection conn, String scriptPath) throws SQLException, IOException {
+        String[] possiblePaths = {
             scriptPath,
             "src/main/resources/" + scriptPath,
             "database/" + scriptPath,
             "../database/" + scriptPath
         };
-        
-        String contenido = null;
-        for (String ruta : posiblesRutas) {
+
+        String content = null;
+        for (String path : possiblePaths) {
             try {
-                contenido = leerArchivo(ruta);
-                if (contenido != null) {
-                    System.out.println("   Script encontrado en: " + ruta);
+                content = readFile(path);
+                if (content != null) {
+                    System.out.println("   Script found at: " + path);
                     break;
                 }
             } catch (IOException e) {
-                // Continuar buscando
             }
         }
-        
-        if (contenido == null) {
-            System.out.println("⚠️  No se encontró el script SQL. Ejecuta manualmente: database/script.sql");
+
+        if (content == null) {
+            System.out.println("SQL script not found. Execute manually: database/script.sql");
             return;
         }
-        
-        // Dividir el script en sentencias individuales
-        String[] sentencias = contenido.split(";");
-        
-        int exitosas = 0;
-        int errores = 0;
-        
+
+        String[] statements = content.split(";");
+
+        int successful = 0;
+        int errors = 0;
+
         try (Statement stmt = conn.createStatement()) {
-            for (String sentencia : sentencias) {
-                String sql = sentencia.trim();
+            for (String statement : statements) {
+                String sql = statement.trim();
                 if (!sql.isEmpty() && !sql.startsWith("--")) {
                     try {
                         stmt.execute(sql);
-                        exitosas++;
+                        successful++;
                     } catch (SQLException e) {
-                        // Ignorar errores de "ya existe"
-                        if (!e.getMessage().contains("already exists") && 
+                        if (!e.getMessage().contains("already exists") &&
                             !e.getMessage().contains("ya existe")) {
-                            errores++;
+                            errors++;
                         }
                     }
                 }
             }
         }
-        
-        System.out.println("   Sentencias ejecutadas: " + exitosas);
-        if (errores > 0) {
-            System.out.println("   Errores ignorados: " + errores);
+
+        System.out.println("   Statements executed: " + successful);
+        if (errors > 0) {
+            System.out.println("   Errors ignored: " + errors);
         }
-        System.out.println("✅ Script ejecutado correctamente");
+        System.out.println("Script executed successfully");
     }
 
-    private static String leerArchivo(String ruta) throws IOException {
-        StringBuilder contenido = new StringBuilder();
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(ruta))) {
-            String linea;
-            while ((linea = reader.readLine()) != null) {
-                contenido.append(linea).append("\n");
+    private static String readFile(String path) throws IOException {
+        StringBuilder content = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
             }
         }
-        
-        return contenido.toString();
+
+        return content.toString();
     }
 
-    public static boolean verificarConexion() {
+    public static boolean verifyConnection() {
         try {
             String dbUrl = "jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB_NAME;
             Connection conn = DriverManager.getConnection(dbUrl, USERNAME, PASSWORD);

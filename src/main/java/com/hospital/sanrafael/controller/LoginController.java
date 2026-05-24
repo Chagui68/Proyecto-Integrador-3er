@@ -1,6 +1,6 @@
 package com.hospital.sanrafael.controller;
 
-import com.hospital.sanrafael.model.Usuario;
+import com.hospital.sanrafael.model.User;
 import com.hospital.sanrafael.service.AuthService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.geometry.Insets;
@@ -9,9 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.collections.FXCollections;
 
 public class LoginController {
@@ -54,15 +52,23 @@ public class LoginController {
         content.setAlignment(Pos.CENTER);
         content.setMaxWidth(500);
 
-        Label icon = new Label("🏥");
-        icon.setFont(Font.font(80));
+        ImageView logoView = null;
+        try {
+            java.io.InputStream logoStream = getClass().getResourceAsStream("/imagenes/logo.png");
+            if (logoStream != null) {
+                Image logoImg = new Image(logoStream);
+                logoView = new ImageView(logoImg);
+                logoView.setFitWidth(200);
+                logoView.setPreserveRatio(true);
+            }
+        } catch (Exception e) { }
 
         Label title = new Label("Hospital Universitario\nSan Rafael de Tunja");
         title.setFont(Font.font("Arial Bold", 32));
         title.setStyle("-fx-text-fill: white; -fx-text-alignment: center;");
         title.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        Label subtitle = new Label("Sistema de Gestión Hospitalaria\nControl de acceso seguro");
+        Label subtitle = new Label("Sistema de Gesti\u00F3n Hospitalaria\nControl de acceso seguro");
         subtitle.setFont(Font.font("Arial", 16));
         subtitle.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-text-alignment: center;");
         subtitle.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
@@ -72,13 +78,16 @@ public class LoginController {
         features.setPadding(new Insets(30, 0, 0, 0));
 
         features.getChildren().addAll(
-            featureRow("👨‍⚕️", "Gestión de Doctores y pacientes"),
-            featureRow("👤", "Control de estudiantes y horarios"),
-            featureRow("📋", "Registro de ingresos hospitalarios"),
-            featureRow("🔒", "Acceso seguro por roles")
+            featureRow("", "Gesti\u00F3n de Doctores y pacientes"),
+            featureRow("", "Control de estudiantes y horarios"),
+            featureRow("", "Registro de ingresos hospitalarios"),
+            featureRow("", "Acceso seguro por roles")
         );
 
-        content.getChildren().addAll(icon, title, subtitle, features);
+        if (logoView != null) {
+            content.getChildren().add(logoView);
+        }
+        content.getChildren().addAll(title, subtitle, features);
         panel.getChildren().add(content);
         return panel;
     }
@@ -86,12 +95,10 @@ public class LoginController {
     private HBox featureRow(String icon, String text) {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(24));
         Label textLbl = new Label(text);
         textLbl.setFont(Font.font("Arial", 14));
         textLbl.setStyle("-fx-text-fill: rgba(255,255,255,0.9);");
-        row.getChildren().addAll(iconLbl, textLbl);
+        row.getChildren().add(textLbl);
         return row;
     }
 
@@ -110,7 +117,7 @@ public class LoginController {
         welcome.setFont(Font.font("Arial Bold", 28));
         welcome.setStyle("-fx-text-fill: #2c3e50;");
 
-        Label instruct = new Label("Inicia sesión para acceder al sistema");
+        Label instruct = new Label("Inicia sesi\u00F3n para acceder al sistema");
         instruct.setFont(Font.font("Arial", 14));
         instruct.setStyle("-fx-text-fill: #95a5a6;");
 
@@ -135,18 +142,18 @@ public class LoginController {
         usernameField.setPrefHeight(45);
         usernameField.setStyle("-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10; -fx-border-color: #ddd; -fx-font-size: 14px;");
 
-        Label passLabel = new Label("Contraseña");
+        Label passLabel = new Label("Contrase\u00F1a");
         passLabel.setFont(Font.font("Arial Bold", 13));
         passLabel.setStyle("-fx-text-fill: #555;");
 
         passwordField = new PasswordField();
-        passwordField.setPromptText("Ingrese su contraseña");
+        passwordField.setPromptText("Ingrese su contrase\u00F1a");
         passwordField.setPrefWidth(380);
         passwordField.setPrefHeight(45);
         passwordField.setStyle("-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 10; -fx-border-color: #ddd; -fx-font-size: 14px;");
         passwordField.setOnAction(e -> doLogin());
 
-        Button loginBtn = new Button("Iniciar Sesión");
+        Button loginBtn = new Button("Iniciar Sesi\u00F3n");
         loginBtn.setPrefWidth(380);
         loginBtn.setPrefHeight(48);
         loginBtn.setStyle(
@@ -163,10 +170,10 @@ public class LoginController {
 
         HBox registerRow = new HBox(5);
         registerRow.setAlignment(Pos.CENTER);
-        Label noAccount = new Label("¿No tienes cuenta?");
+        Label noAccount = new Label("\u00BFNo tienes cuenta?");
         noAccount.setFont(Font.font("Arial", 13));
         noAccount.setStyle("-fx-text-fill: #7f8c8d;");
-        Label registerLink = new Label("Regístrate");
+        Label registerLink = new Label("Reg\u00EDstrate");
         registerLink.setFont(Font.font("Arial Bold", 13));
         registerLink.setStyle("-fx-text-fill: #2C3E8F; -fx-cursor: hand; -fx-underline: true;");
         registerLink.setOnMouseClicked(e -> {
@@ -189,21 +196,26 @@ public class LoginController {
             return;
         }
         if (user.isEmpty() || pass.isEmpty()) {
-            showAlert("Error", "Por favor ingrese usuario y contraseña");
+            showAlert("Error", "Por favor ingrese usuario y contrase\u00F1a");
             return;
         }
 
-        Usuario usuario = authService.login(user, pass);
+        User usuario = authService.login(user, pass);
         if (usuario != null) {
-            if (!usuario.getRol().equals(role)) {
+            if (!usuario.getRole().equals(role)) {
                 showAlert("Error", "El rol seleccionado no coincide con el usuario");
                 return;
             }
             if (mainController != null) {
-                mainController.navigateTo("main");
+                mainController.setCurrentUser(usuario);
+                if (usuario.getRole().equals("Doctor")) {
+                    mainController.navigateTo("doctor-menu");
+                } else {
+                    mainController.navigateTo("main");
+                }
             }
         } else {
-            showAlert("Error", "Usuario o contraseña incorrectos");
+            showAlert("Error", "Usuario o contrase\u00F1a incorrectos");
         }
     }
 

@@ -1,27 +1,39 @@
 package com.hospital.sanrafael.controller;
 
+import com.hospital.sanrafael.model.Doctor;
+import com.hospital.sanrafael.model.Student;
 import com.hospital.sanrafael.service.AuthService;
+import com.hospital.sanrafael.service.DoctorService;
+import com.hospital.sanrafael.service.StudentService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 public class RegisterController {
     private final ViewFactory viewFactory;
     private final AuthService authService;
+    private final StudentService studentService;
+    private final DoctorService doctorService;
     private MainController mainController;
-    private TextField usernameField, emailField, nombreField;
+    private TextField usernameField, emailField, fullNameField , lastnameField;
     private PasswordField passwordField, confirmField;
     private ComboBox<String> roleCombo;
+    private VBox extraFieldsContainer;
+    private TextField phoneField, birthDateField, genderField, addressField;
+    private TextField specialtyField, licenseNumberField;
+    private ComboBox<Integer> semesterCombo;
 
     public RegisterController(ViewFactory viewFactory) {
         this.viewFactory = viewFactory;
         this.authService = new AuthService();
+        this.studentService = new StudentService();
+        this.doctorService = new DoctorService();
     }
 
     public void setMainController(MainController mainController) {
@@ -51,15 +63,24 @@ public class RegisterController {
         content.setAlignment(Pos.CENTER);
         content.setMaxWidth(500);
 
-        Label icon = new Label("📝");
-        icon.setFont(Font.font(80));
+        try {
+            java.io.InputStream logoStream = getClass().getResourceAsStream("/imagenes/logo.png");
+            if (logoStream != null) {
+                Image logoImg = new Image(logoStream);
+                ImageView logoView = new ImageView(logoImg);
+                logoView.setFitWidth(250);
+                logoView.setPreserveRatio(true);
+                content.getChildren().add(logoView);
+            }
+        } catch (Exception e) {
+        }
 
         Label title = new Label("Crear tu Cuenta");
         title.setFont(Font.font("Arial Bold", 32));
         title.setStyle("-fx-text-fill: white; -fx-text-alignment: center;");
         title.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        Label subtitle = new Label("Regístrate según tu rol\npara acceder al sistema");
+        Label subtitle = new Label("Reg\u00EDstrate seg\u00FAn tu rol\npara acceder al sistema");
         subtitle.setFont(Font.font("Arial", 16));
         subtitle.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-text-alignment: center;");
         subtitle.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
@@ -69,12 +90,12 @@ public class RegisterController {
         features.setPadding(new Insets(30, 0, 0, 0));
 
         features.getChildren().addAll(
-            featureRow("👨‍⚕️", "Doctores: gestiona pacientes y horarios"),
-            featureRow("👤", "Estudiantes: acceso a materias y notas"),
-            featureRow("🔧", "Administradores: control total del sistema")
+            featureRow("", "Doctores: gestiona pacientes y horarios"),
+            featureRow("", "Estudiantes: acceso a materias y notas"),
+            featureRow("", "Administradores: control total del sistema")
         );
 
-        content.getChildren().addAll(icon, title, subtitle, features);
+        content.getChildren().addAll(title, subtitle, features);
         panel.getChildren().add(content);
         return panel;
     }
@@ -82,12 +103,10 @@ public class RegisterController {
     private HBox featureRow(String icon, String text) {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(24));
         Label textLbl = new Label(text);
         textLbl.setFont(Font.font("Arial", 14));
         textLbl.setStyle("-fx-text-fill: rgba(255,255,255,0.9);");
-        row.getChildren().addAll(iconLbl, textLbl);
+        row.getChildren().add(textLbl);
         return row;
     }
 
@@ -97,6 +116,11 @@ public class RegisterController {
         panel.setStyle("-fx-background-color: white;");
         panel.setPadding(new Insets(40, 50, 40, 50));
         HBox.setHgrow(panel, Priority.ALWAYS);
+
+        ScrollPane scroll = new ScrollPane();
+        scroll.setFitToWidth(true);
+        scroll.setFitToHeight(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
 
         VBox card = new VBox(14);
         card.setAlignment(Pos.CENTER_LEFT);
@@ -114,10 +138,13 @@ public class RegisterController {
         form.setAlignment(Pos.CENTER_LEFT);
 
         form.getChildren().addAll(
-            fieldLabel("Nombre completo"),
-            nombreField = createField("Ej: Juan Pérez"),
+            fieldLabel("Nombres"),
+            fullNameField = createField("Ej: Juan Felipe"),
 
-            fieldLabel("Correo electrónico"),
+            fieldLabel("Apellidos"),
+            lastnameField = createField("Ej: Gonzalo"),
+
+            fieldLabel("Correo electr\u00F3nico"),
             emailField = createField("Ej: correo@ejemplo.com"),
 
             fieldLabel("Nombre de usuario"),
@@ -126,12 +153,19 @@ public class RegisterController {
             fieldLabel("Rol"),
             roleCombo = createRoleCombo(),
 
-            fieldLabel("Contraseña"),
-            passwordField = createPasswordField("Mínimo 4 caracteres"),
+            fieldLabel("Contrase\u00F1a"),
+            passwordField = createPasswordField("M\u00EDnimo 4 caracteres"),
 
-            fieldLabel("Confirmar contraseña"),
-            confirmField = createPasswordField("Repite la contraseña")
+            fieldLabel("Confirmar contrase\u00F1a"),
+            confirmField = createPasswordField("Repite la contrase\u00F1a")
         );
+
+        extraFieldsContainer = new VBox(10);
+        extraFieldsContainer.setVisible(false);
+        extraFieldsContainer.setManaged(false);
+        form.getChildren().add(extraFieldsContainer);
+
+        roleCombo.setOnAction(e -> updateExtraFields());
 
         Button registerBtn = new Button("Crear Cuenta");
         registerBtn.setPrefWidth(380);
@@ -143,10 +177,10 @@ public class RegisterController {
 
         HBox loginRow = new HBox(5);
         loginRow.setAlignment(Pos.CENTER);
-        Label hasAccount = new Label("¿Ya tienes cuenta?");
+        Label hasAccount = new Label("\u00BFYa tienes cuenta?");
         hasAccount.setFont(Font.font("Arial", 13));
         hasAccount.setStyle("-fx-text-fill: #7f8c8d;");
-        Label loginLink = new Label("Inicia sesión");
+        Label loginLink = new Label("Inicia sesi\u00F3n");
         loginLink.setFont(Font.font("Arial Bold", 13));
         loginLink.setStyle("-fx-text-fill: #2C3E8F; -fx-cursor: hand; -fx-underline: true;");
         loginLink.setOnMouseClicked(e -> {
@@ -155,8 +189,201 @@ public class RegisterController {
         loginRow.getChildren().addAll(hasAccount, loginLink);
 
         card.getChildren().addAll(title, instruct, form, registerBtn, loginRow);
-        panel.getChildren().add(card);
+        scroll.setContent(card);
+        panel.getChildren().add(scroll);
         return panel;
+    }
+
+    private void updateExtraFields() {
+        String role = roleCombo.getValue();
+        extraFieldsContainer.getChildren().clear();
+        extraFieldsContainer.setVisible(false);
+        extraFieldsContainer.setManaged(false);
+
+        if ("Doctor".equals(role)) {
+            addDoctorFields();
+        } else if ("Estudiante".equals(role)) {
+            addStudentFields();
+        }
+    }
+
+    private void addDoctorFields() {
+        extraFieldsContainer.getChildren().add(new Separator());
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Tel\u00E9fono"));
+        phoneField = createField("Ej: 555-0101");
+        extraFieldsContainer.getChildren().add(phoneField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Fecha de Nacimiento"));
+        birthDateField = createField("Ej: 1985-03-15");
+        extraFieldsContainer.getChildren().add(birthDateField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("G\u00E9nero"));
+        genderField = createField("Ej: M o F");
+        extraFieldsContainer.getChildren().add(genderField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Direcci\u00F3n"));
+        addressField = createField("Ej: Av. Principal 123");
+        extraFieldsContainer.getChildren().add(addressField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Especialidad"));
+        specialtyField = createField("Ej: Medicina Interna");
+        extraFieldsContainer.getChildren().add(specialtyField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("N\u00B0 Colegiado"));
+        licenseNumberField = createField("Ej: COL-12345");
+        extraFieldsContainer.getChildren().add(licenseNumberField);
+
+        extraFieldsContainer.setVisible(true);
+        extraFieldsContainer.setManaged(true);
+    }
+
+    private void addStudentFields() {
+        extraFieldsContainer.getChildren().add(new Separator());
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Tel\u00E9fono"));
+        phoneField = createField("Ej: 555-1001");
+        extraFieldsContainer.getChildren().add(phoneField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Fecha de Nacimiento"));
+        birthDateField = createField("Ej: 2000-01-15");
+        extraFieldsContainer.getChildren().add(birthDateField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("G\u00E9nero"));
+        genderField = createField("Ej: M o F");
+        extraFieldsContainer.getChildren().add(genderField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Direcci\u00F3n"));
+        addressField = createField("Ej: Calle 10 #20-30");
+        extraFieldsContainer.getChildren().add(addressField);
+
+        extraFieldsContainer.getChildren().add(fieldLabel("Semestre"));
+        semesterCombo = new ComboBox<>();
+        semesterCombo.setItems(FXCollections.observableArrayList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+        semesterCombo.setPrefWidth(380);
+        semesterCombo.setPrefHeight(42);
+        semesterCombo.setStyle("-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 5; -fx-border-color: #ddd; -fx-font-size: 14px;");
+        extraFieldsContainer.getChildren().add(semesterCombo);
+
+        extraFieldsContainer.setVisible(true);
+        extraFieldsContainer.setManaged(true);
+    }
+
+    private void doRegister() {
+        String role = roleCombo.getValue();
+        String user = usernameField.getText().trim();
+        String email = emailField.getText().trim();
+        String fullName = fullNameField.getText().trim();
+        String pass = passwordField.getText().trim();
+        String confirm = confirmField.getText().trim();
+
+        if (role.equals("Seleccione un rol")) {
+            showAlert("Error", "Por favor seleccione un rol");
+            return;
+        }
+        if (user.isEmpty() || email.isEmpty() || fullName.isEmpty() || pass.isEmpty()) {
+            showAlert("Error", "Todos los campos son obligatorios");
+            return;
+        }
+        if (!pass.equals(confirm)) {
+            showAlert("Error", "Las contrase\u00F1as no coinciden");
+            return;
+        }
+        if (pass.length() < 4) {
+            showAlert("Error", "La contrase\u00F1a debe tener al menos 4 caracteres");
+            return;
+        }
+        if (authService.usernameExists(user)) {
+            showAlert("Error", "El nombre de usuario ya existe");
+            return;
+        }
+
+        if ("Doctor".equals(role)) {
+            if (!validateDoctorFields()) return;
+            if (authService.register(user, email, pass, fullName, role)) {
+                try {
+            String[] names = splitFullName(fullName);
+            Doctor d = new Doctor(null, names[0], names[1],
+                email, phoneField.getText().trim(), birthDateField.getText().trim(),
+                genderField.getText().trim(), addressField.getText().trim(),
+                specialtyField.getText().trim(), licenseNumberField.getText().trim(), "", 0);
+            doctorService.registerDoctor(d);
+                    showAlert("\u00C9xito", "Cuenta creada correctamente. Ahora puedes iniciar sesi\u00F3n.");
+                    if (mainController != null) mainController.navigateTo("login");
+                } catch (Exception ex) {
+                    showAlert("Error", "Error al registrar doctor: " + ex.getMessage());
+                }
+            } else {
+                showAlert("Error", "No se pudo crear la cuenta");
+            }
+        } else if ("Estudiante".equals(role)) {
+            if (!validateStudentFields()) return;
+            if (authService.register(user, email, pass, fullName, role)) {
+                try {
+                    String[] names = splitFullName(fullName);
+                    String fn = convertDate(birthDateField.getText().trim());
+                    Student s = new Student(null, names[0], names[1],
+                            email, phoneField.getText().trim(), fn, genderField.getText().trim(),
+                            addressField.getText().trim(), "", semesterCombo.getValue(), null);
+                    studentService.registerStudent(s);
+                    showAlert("\u00C9xito", "Cuenta creada correctamente. Ahora puedes iniciar sesi\u00F3n.");
+                    if (mainController != null) mainController.navigateTo("login");
+                } catch (Exception ex) {
+                    showAlert("Error", "Error al registrar estudiante: " + ex.getMessage());
+                }
+            } else {
+                showAlert("Error", "No se pudo crear la cuenta");
+            }
+        } else {
+            if (authService.register(user, email, pass, fullName, role)) {
+                showAlert("\u00C9xito", "Cuenta creada correctamente. Ahora puedes iniciar sesi\u00F3n.");
+                if (mainController != null) mainController.navigateTo("login");
+            } else {
+                showAlert("Error", "No se pudo crear la cuenta");
+            }
+        }
+    }
+
+    private String[] splitFullName(String fullName) {
+        String[] parts = fullName.trim().split(" ", 2);
+        String first = parts[0];
+        String last = parts.length > 1 ? parts[1] : "";
+        return new String[]{first, last};
+    }
+
+    private boolean validateStudentFields() {
+        if (isEmpty(phoneField) || isEmpty(birthDateField) || isEmpty(genderField) || isEmpty(addressField)) {
+            showAlert("Error", "Complete todos los campos del estudiante");
+            return false;
+        }
+        if (semesterCombo.getValue() == null) {
+            showAlert("Error", "Seleccione un semestre");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validateDoctorFields() {
+        if (isEmpty(phoneField) || isEmpty(birthDateField) || isEmpty(genderField) || isEmpty(addressField) || isEmpty(specialtyField) || isEmpty(licenseNumberField)) {
+            showAlert("Error", "Complete todos los campos del doctor");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isEmpty(TextField f) {
+        return f == null || f.getText().trim().isEmpty();
+    }
+
+    private String convertDate(String date) {
+        if (date == null || date.trim().isEmpty()) return "2000-01-01";
+        date = date.trim();
+        if (date.matches("\\d{4}-\\d{2}-\\d{2}")) return date;
+        if (date.contains("/")) {
+            String[] p = date.split("/");
+            if (p.length == 3) return String.format("%s-%s-%s", p[2], p[1], p[0]);
+        }
+        return date;
     }
 
     private Label fieldLabel(String text) {
@@ -192,43 +419,6 @@ public class RegisterController {
         cb.setPrefHeight(42);
         cb.setStyle("-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 5; -fx-border-color: #ddd; -fx-font-size: 14px;");
         return cb;
-    }
-
-    private void doRegister() {
-        String role = roleCombo.getValue();
-        String user = usernameField.getText().trim();
-        String email = emailField.getText().trim();
-        String nombre = nombreField.getText().trim();
-        String pass = passwordField.getText().trim();
-        String confirm = confirmField.getText().trim();
-
-        if (role.equals("Seleccione un rol")) {
-            showAlert("Error", "Por favor seleccione un rol");
-            return;
-        }
-        if (user.isEmpty() || email.isEmpty() || nombre.isEmpty() || pass.isEmpty()) {
-            showAlert("Error", "Todos los campos son obligatorios");
-            return;
-        }
-        if (!pass.equals(confirm)) {
-            showAlert("Error", "Las contraseñas no coinciden");
-            return;
-        }
-        if (pass.length() < 4) {
-            showAlert("Error", "La contraseña debe tener al menos 4 caracteres");
-            return;
-        }
-        if (authService.usernameExists(user)) {
-            showAlert("Error", "El nombre de usuario ya existe");
-            return;
-        }
-
-        if (authService.register(user, email, pass, nombre, role)) {
-            showAlert("Éxito", "Cuenta creada correctamente. Ahora puedes iniciar sesión.");
-            if (mainController != null) mainController.navigateTo("login");
-        } else {
-            showAlert("Error", "No se pudo crear la cuenta");
-        }
     }
 
     private void showAlert(String title, String message) {
