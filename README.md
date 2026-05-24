@@ -1,4 +1,4 @@
-# 🏥 Hospital San Rafael - Sistema de Gestión Académica
+#  Hospital San Rafael - Sistema de Gestión Académica
 
 Sistema integral de gestión para estudiantes y doctores del Hospital San Rafael, desarrollado con **JavaFX** y conectado a base de datos **PostgreSQL**.
 
@@ -7,17 +7,17 @@ Sistema integral de gestión para estudiantes y doctores del Hospital San Rafael
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-blue?style=flat-square&logo=postgresql)
 ![Maven](https://img.shields.io/badge/Maven-3.6+-red?style=flat-square&logo=apache-maven)
 
-## 📋 Descripción
+##  Descripción
 
 Este sistema permite:
-- ✅ **Gestión de Estudiantes**: Registro, edición, eliminación y consulta
-- ✅ **Gestión de Doctores**: Control de personal médico y especialidades
-- ✅ **Catálogo de Materias**: Administración del plan de estudios
-- ✅ **Consulta de Horarios**: Visualización de horarios por estudiante
-- ✅ **Control de Registros**: Bitácora de ingresos al hospital
-- ✅ **Conexión a PostgreSQL**: Persistencia real de datos en base de datos
+-  **Gestión de Estudiantes**: Registro, edición, eliminación y consulta
+-  **Gestión de Doctores**: Control de personal médico y especialidades
+-  **Catálogo de Materias**: Administración del plan de estudios
+-  **Consulta de Horarios**: Visualización de horarios por estudiante
+-  **Control de Registros**: Bitácora de ingresos al hospital
+-  **Conexión a PostgreSQL**: Persistencia real de datos en base de datos
 
-## 🚀 Requisitos Previos
+##  Requisitos Previos
 
 | Recurso | Versión Mínima | Descarga |
 |---------|---------------|----------|
@@ -26,7 +26,7 @@ Este sistema permite:
 | PostgreSQL | 13+ | [Descargar](https://www.postgresql.org/) |
 | pgAdmin 4 | Cualquier versión | Incluido con PostgreSQL |
 
-## 📦 Instalación
+##  Instalación
 
 ### 1. Clonar o descargar el proyecto
 ```bash
@@ -61,7 +61,7 @@ db.driver=org.postgresql.Driver
 mvn clean compile
 ```
 
-## ▶️ Ejecución
+## ️ Ejecución
 
 ```bash
 mvn clean compile javafx:run
@@ -71,7 +71,7 @@ O usa el script incluido:
 - **Windows**: `run.bat`
 - **Linux/Mac**: `./run.sh`
 
-## 📖 Uso Básico
+##  Uso Básico
 
 ### Registrar un Estudiante
 1. Ve a **Gestión de Estudiantes**
@@ -95,7 +95,7 @@ WHERE p.tipo_persona = 'ESTUDIANTE'
 ORDER BY p.fecha_creacion DESC;
 ```
 
-## 🗂️ Estructura del Proyecto
+## ️ Estructura del Proyecto
 
 ```
 HospitalSanRafael/
@@ -115,7 +115,7 @@ HospitalSanRafael/
 └── README.md                      # Este archivo
 ```
 
-## 🛠️ Tecnologías
+## ️ Tecnologías
 
 | Categoría | Tecnología |
 |----------|-----------|
@@ -126,7 +126,7 @@ HospitalSanRafael/
 | **Build Tool** | Maven 3.6+ |
 | **JDBC Driver** | PostgreSQL JDBC 42.6.0 |
 
-## 📊 Modelo de Datos
+##  Modelo de Datos
 
 ### Entidades Principales
 - **Persona**: Clase base (Estudiante, Doctor)
@@ -136,23 +136,23 @@ HospitalSanRafael/
 - **Horario**: Distribución temporal
 - **RegistroHospitalario**: Control de accesos
 
-## 📝 Características Destacadas
+##  Características Destacadas
 
-- ✅ **Conexión Automática**: Detección y reconexión automática a PostgreSQL
-- ✅ **Manejo de Errores**: Mensajes descriptivos y logs en consola
-- ✅ **Transacciones**: Guardado atómico (todo o nada)
-- ✅ **Conversión de Fechas**: Acepta múltiples formatos
-- ✅ **Interfaz Moderna**: Diseño con gradientes y efectos visuales
-- ✅ **Datos de Ejemplo**: Incluye población inicial de prueba
+-  **Conexión Automática**: Detección y reconexión automática a PostgreSQL
+-  **Manejo de Errores**: Mensajes descriptivos y logs en consola
+-  **Transacciones**: Guardado atómico (todo o nada)
+-  **Conversión de Fechas**: Acepta múltiples formatos
+-  **Interfaz Moderna**: Diseño con gradientes y efectos visuales
+-  **Datos de Ejemplo**: Incluye población inicial de prueba
 
-## 📞 Soporte
+##  Soporte
 
 Para reportar errores o sugerencias, revisa la documentación en:
 - `database/README.md` - Guía de base de datos
 - `database/INSTALACION_POSTGRESQL.md` - Instalación de PostgreSQL
 - `GUIA_USO.md` - Manual de usuario completo
 
-## 👨‍💻 Autor
+##  Autor
 
 Desarrollado para el **Hospital San Rafael**  
 Versión: 1.0.0  
