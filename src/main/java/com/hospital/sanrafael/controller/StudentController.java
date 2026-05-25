@@ -2,6 +2,7 @@ package com.hospital.sanrafael.controller;
 
 import com.hospital.sanrafael.model.Shift;
 import com.hospital.sanrafael.model.Student;
+import com.hospital.sanrafael.service.AlertService;
 import com.hospital.sanrafael.service.StudentService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.collections.FXCollections;
@@ -12,18 +13,24 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 
-public class StudentController extends BaseDashboardController {
-    private final StudentService studentService;
-    private TableView<Student> tableView;
-    private TextField idField, firstNameField, lastNameField, emailField, phoneField;
-    private TextField birthDateField, genderField, addressField;
-    private TextField careerField, semesterField;
-    private ComboBox<Shift> shiftField;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-    public StudentController(ViewFactory viewFactory) {
-        this.viewFactory = viewFactory;
-        this.studentService = new StudentService();
-    }
+public class StudentController extends BaseDashboardController {
+private final StudentService studentService;
+private final AlertService alertService;
+private TableView<Student> tableView;
+private TextField idField, firstNameField, lastNameField, emailField, phoneField;
+private TextField birthDateField, genderField, addressField;
+private TextField careerField, semesterField;
+private ComboBox<Shift> shiftField;
+private TextField arlDateField;
+
+public StudentController(ViewFactory viewFactory) {
+this.viewFactory = viewFactory;
+this.studentService = new StudentService();
+this.alertService = AlertService.getInstance();
+}
 
     @Override protected String getSidebarColor() { return "#27AE60"; }
     @Override protected String getSidebarLogo() { return "MEDjestic"; }
@@ -56,14 +63,18 @@ public class StudentController extends BaseDashboardController {
         content.setPadding(new Insets(25));
         content.setStyle("-fx-background-color: #f0f4f8;");
 
-        HBox stats = new HBox(15);
-        int total = studentService.getAllStudents().size();
-        stats.getChildren().addAll(
-            statCard("TOTAL", String.valueOf(total), "#2C3E8F"),
-            statCard("SEMESTRES", "10", "#27AE60"),
-            statCard("CARRERAS", "5", "#E67E22"),
-            statCard("TURNOS", "Ma\u00F1ana/Tarde/Noche", "#E74C3C")
-        );
+HBox stats = new HBox(15);
+int total = studentService.getAllStudents().size();
+stats.getChildren().addAll(
+statCard("TOTAL", String.valueOf(total), "#2C3E8F"),
+statCard("SEMESTRES", "10", "#27AE60"),
+statCard("CARRERAS", "5", "#E67E22"),
+statCard("TURNOS", "Ma\u00F1ana/Tarde/Noche", "#E74C3C")
+);
+
+Button checkArlBtn = actionBtn("Verificar ARLs", "#E67E22");
+checkArlBtn.setOnAction(e -> checkArlExpirations());
+stats.getChildren().add(checkArlBtn);
 
         VBox tableSection = new VBox(10);
         tableSection.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
@@ -113,8 +124,9 @@ public class StudentController extends BaseDashboardController {
         grid.add(fieldLabel("G\u00E9nero:"), 2, r); grid.add(genderField, 3, r++);
         grid.add(fieldLabel("Direcci\u00F3n:"), 0, r); grid.add(addressField, 1, r);
         grid.add(fieldLabel("Carrera:"), 2, r); grid.add(careerField, 3, r++);
-        grid.add(fieldLabel("Semestre:"), 0, r); grid.add(semesterField, 1, r);
-        grid.add(fieldLabel("Turno:"), 2, r); grid.add(shiftField, 3, r++);
+grid.add(fieldLabel("Semestre:"), 0, r); grid.add(semesterField, 1, r);
+grid.add(fieldLabel("Turno:"), 2, r); grid.add(shiftField, 3, r++);
+grid.add(fieldLabel("Vencimiento ARL:"), 0, r); grid.add(arlDateField = createField(), 1, r++);
 
         HBox buttons = new HBox(12);
         buttons.setAlignment(Pos.CENTER);
@@ -156,25 +168,31 @@ public class StudentController extends BaseDashboardController {
         tableView.getColumns().addAll(c1, c2, c3, c4, c5);
     }
 
-    private void fillForm(Student s) {
-        idField.setText(s.getId());
-        firstNameField.setText(s.getFirstName());
-        lastNameField.setText(s.getLastName());
-        emailField.setText(s.getEmail());
-        phoneField.setText(s.getPhone());
-        birthDateField.setText(s.getBirthDate());
-        genderField.setText(s.getGender());
-        addressField.setText(s.getAddress());
-        careerField.setText(s.getCareer());
-        semesterField.setText(String.valueOf(s.getSemester()));
-        shiftField.setValue(s.getShift());
-    }
+private void fillForm(Student s) {
+idField.setText(s.getId());
+firstNameField.setText(s.getFirstName());
+lastNameField.setText(s.getLastName());
+emailField.setText(s.getEmail());
+phoneField.setText(s.getPhone());
+birthDateField.setText(s.getBirthDate());
+genderField.setText(s.getGender());
+addressField.setText(s.getAddress());
+careerField.setText(s.getCareer());
+semesterField.setText(String.valueOf(s.getSemester()));
+shiftField.setValue(s.getShift());
+if (s.getArlExpirationDate() != null) {
+arlDateField.setText(s.getArlExpirationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+} else {
+arlDateField.setText("");
+}
+}
 
-    private void clearForm() {
-        idField.clear(); firstNameField.clear(); lastNameField.clear(); emailField.clear();
-        phoneField.clear(); birthDateField.clear(); genderField.clear();
-        addressField.clear(); careerField.clear(); semesterField.clear(); shiftField.setValue(null);
-    }
+private void clearForm() {
+idField.clear(); firstNameField.clear(); lastNameField.clear(); emailField.clear();
+phoneField.clear(); birthDateField.clear(); genderField.clear();
+addressField.clear(); careerField.clear(); semesterField.clear(); shiftField.setValue(null);
+arlDateField.clear();
+}
 
     private void save() {
         try {
@@ -186,14 +204,17 @@ public class StudentController extends BaseDashboardController {
                 show("Error", "Seleccione un turno");
                 return;
             }
-            String fn = convertDate(birthDateField.getText());
-            Student s = new Student(null, firstNameField.getText(), lastNameField.getText(),
-                    emailField.getText(), phoneField.getText(), fn, genderField.getText(),
-                    addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
-            studentService.registerStudent(s);
-            tableView.setItems(getStudentsData());
-            clearForm();
-            show("\u00C9xito", "Estudiante registrado");
+String fn = convertDate(birthDateField.getText());
+Student s = new Student(null, firstNameField.getText(), lastNameField.getText(),
+emailField.getText(), phoneField.getText(), fn, genderField.getText(),
+addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
+if (arlDateField.getText() != null && !arlDateField.getText().trim().isEmpty()) {
+s.setArlExpirationDate(parseDate(arlDateField.getText()));
+}
+studentService.registerStudent(s);
+tableView.setItems(getStudentsData());
+clearForm();
+show("\u00C9xito", "Estudiante registrado");
         } catch (Exception ex) {
             show("Error", "Error: " + ex.getMessage());
         }
@@ -209,12 +230,15 @@ public class StudentController extends BaseDashboardController {
                 show("Error", "Seleccione un turno");
                 return;
             }
-            Student s = new Student(idField.getText(), firstNameField.getText(), lastNameField.getText(),
-                    emailField.getText(), phoneField.getText(), convertDate(birthDateField.getText()), genderField.getText(),
-                    addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
-            studentService.updateStudent(s);
-            tableView.setItems(getStudentsData());
-            show("\u00C9xito", "Estudiante actualizado");
+Student s = new Student(idField.getText(), firstNameField.getText(), lastNameField.getText(),
+emailField.getText(), phoneField.getText(), convertDate(birthDateField.getText()), genderField.getText(),
+addressField.getText(), careerField.getText(), parseInt(semesterField.getText(), 1), shiftField.getValue());
+if (arlDateField.getText() != null && !arlDateField.getText().trim().isEmpty()) {
+s.setArlExpirationDate(parseDate(arlDateField.getText()));
+}
+studentService.updateStudent(s);
+tableView.setItems(getStudentsData());
+show("\u00C9xito", "Estudiante actualizado");
         } catch (Exception ex) {
             show("Error", "Error: " + ex.getMessage());
         }
@@ -236,18 +260,42 @@ public class StudentController extends BaseDashboardController {
         }
     }
 
-    private boolean fieldsEmpty() {
-        return firstNameField.getText().trim().isEmpty()
-            || lastNameField.getText().trim().isEmpty()
-            || emailField.getText().trim().isEmpty()
-            || phoneField.getText().trim().isEmpty()
-            || careerField.getText().trim().isEmpty();
-    }
+private boolean fieldsEmpty() {
+return firstNameField.getText().trim().isEmpty()
+|| lastNameField.getText().trim().isEmpty()
+|| emailField.getText().trim().isEmpty()
+|| phoneField.getText().trim().isEmpty()
+|| careerField.getText().trim().isEmpty();
+}
 
-    private int parseInt(String val, int def) {
-        if (val == null || val.trim().isEmpty()) return def;
-        try { return Integer.parseInt(val.trim()); } catch (NumberFormatException e) { return def; }
-    }
+private void checkArlExpirations() {
+studentService.checkAllArlExpirations();
+show("\u00C9xito", "Verificaci\u00F3n de ARLs completada. Revision las notificaciones.");
+}
+
+private int parseInt(String val, int def) {
+if (val == null || val.trim().isEmpty()) return def;
+try { return Integer.parseInt(val.trim()); } catch (NumberFormatException e) { return def; }
+}
+
+private LocalDate parseDate(String date) {
+if (date == null || date.trim().isEmpty()) return null;
+date = date.trim();
+try {
+if (date.matches("\\d{4}-\\d{2}-\\d{2}")) {
+return LocalDate.parse(date);
+}
+if (date.contains("/")) {
+String[] p = date.split("/");
+if (p.length == 3) {
+return LocalDate.of(Integer.parseInt(p[2]), Integer.parseInt(p[1]), Integer.parseInt(p[0]));
+}
+}
+} catch (Exception e) {
+show("Error", "Fecha inv\u00E1lida: " + date);
+}
+return null;
+}
 
     private String convertDate(String date) {
         if (date == null || date.trim().isEmpty()) return "";

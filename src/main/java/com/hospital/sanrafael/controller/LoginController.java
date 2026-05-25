@@ -73,16 +73,22 @@ public class LoginController {
         subtitle.setStyle("-fx-text-fill: rgba(255,255,255,0.8); -fx-text-alignment: center;");
         subtitle.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
 
-        VBox features = new VBox(12);
-        features.setAlignment(Pos.CENTER_LEFT);
-        features.setPadding(new Insets(30, 0, 0, 0));
+VBox features = new VBox(12);
+features.setAlignment(Pos.CENTER_LEFT);
+features.setPadding(new Insets(30, 0, 0, 0));
 
-        features.getChildren().addAll(
-            featureRow("", "Gesti\u00F3n de Doctores y pacientes"),
-            featureRow("", "Control de estudiantes y horarios"),
-            featureRow("", "Registro de ingresos hospitalarios"),
-            featureRow("", "Acceso seguro por roles")
-        );
+features.getChildren().addAll(
+featureRow("", "Gesti\u00F3n de Doctores y pacientes"),
+featureRow("", "Control de estudiantes y horarios"),
+featureRow("", "Registro de ingresos hospitalarios"),
+featureRow("", "Acceso seguro por roles")
+);
+
+Label credsLabel = new Label("USUARIO: admin / doctor1 / estudiante1\nCLAVE: admin123 / doctor123 / estudiante123");
+credsLabel.setFont(Font.font("Arial Bold", 11));
+credsLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.7); -fx-text-alignment: center;");
+credsLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+features.getChildren().add(credsLabel);
 
         if (logoView != null) {
             content.getChildren().add(logoView);
@@ -206,14 +212,16 @@ public class LoginController {
                 showAlert("Error", "El rol seleccionado no coincide con el usuario");
                 return;
             }
-            if (mainController != null) {
-                mainController.setCurrentUser(usuario);
-                if (usuario.getRole().equals("Doctor")) {
-                    mainController.navigateTo("doctor-menu");
-                } else {
-                    mainController.navigateTo("main");
-                }
-            }
+if (mainController != null) {
+mainController.setCurrentUser(usuario);
+if (usuario.getRole().equals("Doctor")) {
+mainController.navigateTo("doctor-dashboard");
+} else if (usuario.getRole().equals("Estudiante")) {
+mainController.navigateTo("student-dashboard");
+} else {
+mainController.navigateTo("main");
+}
+}
         } else {
             showAlert("Error", "Usuario o contrase\u00F1a incorrectos");
         }

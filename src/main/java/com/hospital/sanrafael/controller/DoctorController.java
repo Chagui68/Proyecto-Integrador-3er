@@ -113,21 +113,19 @@ public class DoctorController extends BaseDashboardController {
         grid.add(fieldLabel("\u00C1rea:"), 2, r); grid.add(areaField, 3, r++);
         grid.add(fieldLabel("A\u00F1os Exp.:"), 0, r); grid.add(experienceField, 1, r);
 
-        HBox buttons = new HBox(12);
-        buttons.setAlignment(Pos.CENTER);
-        buttons.setPadding(new Insets(10, 0, 0, 0));
+HBox buttons = new HBox(12);
+buttons.setAlignment(Pos.CENTER);
+buttons.setPadding(new Insets(10, 0, 0, 0));
 
-        Button saveBtn = actionBtn("Guardar", "#27AE60");
-        Button updateBtn = actionBtn("Actualizar", "#F39C12");
-        Button deleteBtn = actionBtn("Eliminar", "#E74C3C");
-        Button clearBtn = actionBtn("Limpiar", "#95A5A6");
+Button saveBtn = actionBtn("Guardar", "#27AE60");
+Button deleteBtn = actionBtn("Eliminar", "#E74C3C");
+Button clearBtn = actionBtn("Limpiar", "#95A5A6");
 
-        saveBtn.setOnAction(e -> save());
-        updateBtn.setOnAction(e -> update());
-        deleteBtn.setOnAction(e -> delete());
-        clearBtn.setOnAction(e -> clearForm());
+saveBtn.setOnAction(e -> save());
+deleteBtn.setOnAction(e -> delete());
+clearBtn.setOnAction(e -> clearForm());
 
-        buttons.getChildren().addAll(saveBtn, updateBtn, deleteBtn, clearBtn);
+buttons.getChildren().addAll(saveBtn, deleteBtn, clearBtn);
         formSection.getChildren().addAll(formTitle, grid, buttons);
         tableSection.getChildren().addAll(sectionTitle, tableView, formSection);
         content.getChildren().addAll(stats, tableSection);
@@ -194,25 +192,7 @@ public class DoctorController extends BaseDashboardController {
         }
     }
 
-    private void update() {
-        try {
-            if (idField.getText() == null || idField.getText().isEmpty()) {
-                show("Error", "Seleccione un doctor de la tabla");
-                return;
-            }
-            Doctor d = new Doctor(idField.getText(), firstNameField.getText(), lastNameField.getText(),
-                    emailField.getText(), phoneField.getText(), convertDate(birthDateField.getText()), genderField.getText(),
-                    addressField.getText(), specialtyField.getText(), licenseField.getText(),
-                    areaField.getText(), parseInt(experienceField.getText(), 0));
-            doctorService.updateDoctor(d);
-            tableView.setItems(getDoctorsData());
-            show("\u00C9xito", "Doctor actualizado");
-        } catch (Exception ex) {
-            show("Error", "Error: " + ex.getMessage());
-        }
-    }
-
-    private void delete() {
+private void delete() {
         try {
             String id = idField.getText();
             if (id == null || id.isEmpty()) {

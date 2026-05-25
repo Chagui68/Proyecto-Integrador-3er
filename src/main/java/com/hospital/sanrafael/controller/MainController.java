@@ -77,15 +77,25 @@ public class MainController {
                     scheduleController.setMainController(this);
                     scene = new Scene(scheduleController.getView(), 1400, 750);
                     break;
-                case "doctor-menu":
-                    DoctorMenuController doctorMenuController = new DoctorMenuController(viewFactory);
-                    doctorMenuController.setMainController(this);
-                    scene = new Scene(doctorMenuController.getView(), 1400, 750);
-                    break;
-                default:
-                    MainMenuController mmc = new MainMenuController(viewFactory);
-                    mmc.setMainController(this);
-                    scene = new Scene(mmc.getView(), 1400, 750);
+case "doctor-menu":
+DoctorMenuController doctorMenuController = new DoctorMenuController(viewFactory);
+doctorMenuController.setMainController(this);
+scene = new Scene(doctorMenuController.getView(), 1400, 750);
+break;
+case "student-dashboard":
+StudentDashboardController studentDashController = new StudentDashboardController(viewFactory);
+studentDashController.setMainController(this);
+scene = new Scene(studentDashController.getView(), 1400, 750);
+break;
+case "doctor-dashboard":
+DoctorDashboardController doctorDashController = new DoctorDashboardController(viewFactory);
+doctorDashController.setMainController(this);
+scene = new Scene(doctorDashController.getView(), 1400, 750);
+break;
+default:
+MainMenuController mmc = new MainMenuController(viewFactory);
+mmc.setMainController(this);
+scene = new Scene(mmc.getView(), 1400, 750);
             }
 
             if (scene != null) {

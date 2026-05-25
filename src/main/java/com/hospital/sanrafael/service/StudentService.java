@@ -7,6 +7,7 @@ import com.hospital.sanrafael.model.Student;
 import com.hospital.sanrafael.model.Schedule;
 import com.hospital.sanrafael.model.Subject;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class StudentService {
@@ -96,11 +97,25 @@ public class StudentService {
         }
     }
 
-    public List<Schedule> getStudentSchedule(String studentId) {
-        Student student = getStudentById(studentId);
-        if (student != null) {
-            return student.getWeeklySchedule();
-        }
-        return List.of();
-    }
+public List<Schedule> getStudentSchedule(String studentId) {
+Student student = getStudentById(studentId);
+if (student != null) {
+return student.getWeeklySchedule();
+}
+return List.of();
+}
+
+public void checkAndUpdateArlStatus(String studentId, LocalDate arlExpirationDate) {
+Student student = getStudentById(studentId);
+if (student != null) {
+student.setArlExpirationDate(arlExpirationDate);
+updateStudent(student);
+}
+}
+
+public void checkAllArlExpirations() {
+List<Student> students = getAllStudents();
+AlertService alertService = AlertService.getInstance();
+alertService.checkArlExpirations(students);
+}
 }

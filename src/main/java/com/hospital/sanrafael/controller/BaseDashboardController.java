@@ -1,5 +1,6 @@
 package com.hospital.sanrafael.controller;
 
+import com.hospital.sanrafael.service.NotificationService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,12 +10,19 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public abstract class BaseDashboardController {
-    protected MainController mainController;
-    protected ViewFactory viewFactory;
+protected MainController mainController;
+protected ViewFactory viewFactory;
+protected final NotificationService notificationService = NotificationService.getInstance();
+
+protected BorderPane root;
+protected Label titleLabel;
+protected VBox mainContent;
+protected String currentSection = "profile";
 
     protected abstract String getSidebarColor();
     protected abstract String getSidebarLogo();
@@ -29,85 +37,100 @@ public abstract class BaseDashboardController {
     }
 
     public Pane getView() {
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
         root.setStyle("-fx-background-color: #f0f4f8;");
         root.setLeft(createSidebar());
-        VBox mainContent = new VBox();
+        mainContent = new VBox();
         mainContent.getChildren().addAll(createTopBar(), createContent());
         root.setCenter(mainContent);
         return root;
     }
 
+    protected void refreshContent() {
+        if (titleLabel != null) {
+            titleLabel.setText(getTitle());
+        }
+        if (mainContent != null && mainContent.getChildren().size() >= 2) {
+            mainContent.getChildren().set(1, createContent());
+        }
+        if (root != null) {
+            root.setLeft(createSidebar());
+        }
+    }
+
     protected abstract VBox createContent();
 
-    protected VBox createSidebar() {
-        VBox sidebar = new VBox(15);
-        sidebar.setPrefWidth(230);
-        sidebar.setStyle("-fx-background-color: " + getSidebarColor() + ";");
-        sidebar.setPadding(new Insets(25, 15, 25, 15));
+protected VBox createSidebar() {
+VBox sidebar = new VBox(15);
+sidebar.setPrefWidth(250);
+sidebar.setStyle("-fx-background-color: " + getSidebarColor() + ";");
+sidebar.setPadding(new Insets(25, 15, 25, 15));
 
-        Label logo = new Label(getSidebarLogo());
-        logo.setFont(Font.font("Arial Bold", 20));
-        logo.setStyle("-fx-text-fill: white;");
+Label logo = new Label(getSidebarLogo());
+logo.setFont(Font.font("Arial Bold", 20));
+logo.setStyle("-fx-text-fill: white;");
 
-        HBox profile = new HBox(10);
-        profile.setAlignment(Pos.CENTER_LEFT);
-        profile.setPadding(new Insets(15, 0, 20, 0));
+HBox profile = new HBox(10);
+profile.setAlignment(Pos.CENTER_LEFT);
+profile.setPadding(new Insets(15, 0, 20, 0));
 
-        Circle avatar = new Circle(22);
-        avatar.setFill(Color.WHITE);
-        Label letter = new Label(getSidebarLetter());
-        letter.setFont(Font.font("Arial Bold", 16));
-        letter.setStyle("-fx-text-fill: " + getSidebarColor() + ";");
+Circle avatar = new Circle(22);
+avatar.setFill(Color.WHITE);
+Label letter = new Label(getSidebarLetter());
+letter.setFont(Font.font("Arial Bold", 16));
+letter.setStyle("-fx-text-fill: " + getSidebarColor() + ";");
 
-        VBox info = new VBox(3);
-        Label name = new Label(getModuleName());
-        name.setFont(Font.font("Arial Bold", 13));
-        name.setStyle("-fx-text-fill: white;");
-        Label role = new Label(getModuleRole());
-        role.setFont(Font.font("Arial", 11));
-        role.setStyle("-fx-text-fill: derive(" + getSidebarColor() + ", 60%);");
-        info.getChildren().addAll(name, role);
+VBox info = new VBox(3);
+Label name = new Label(getModuleName());
+name.setFont(Font.font("Arial Bold", 13));
+name.setStyle("-fx-text-fill: white;");
+Label role = new Label(getModuleRole());
+role.setFont(Font.font("Arial", 11));
+role.setStyle("-fx-text-fill: derive(" + getSidebarColor() + ", 60%);");
+info.getChildren().addAll(name, role);
 
-        profile.getChildren().addAll(new StackPane(avatar, letter), info);
+profile.getChildren().addAll(new StackPane(avatar, letter), info);
 
-        VBox menu = createSidebarMenuItems();
-        sidebar.getChildren().addAll(logo, profile, menu);
-        return sidebar;
-    }
+VBox menu = createSidebarMenuItems();
 
-    protected HBox createTopBar() {
-        HBox bar = new HBox();
-        bar.setStyle("-fx-background-color: white; -fx-padding: 15 25;");
-        bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setSpacing(15);
+HBox notificationBox = createNotificationBadge();
+menu.getChildren().add(notificationBox);
 
-        Label title = new Label(getTitle());
-        title.setFont(Font.font("Arial Bold", 22));
-        title.setStyle("-fx-text-fill: #2c3e50;");
+sidebar.getChildren().addAll(logo, profile, menu);
+return sidebar;
+}
 
-        Region sp = new Region();
-        HBox.setHgrow(sp, Priority.ALWAYS);
+protected HBox createTopBar() {
+HBox bar = new HBox();
+bar.setStyle("-fx-background-color: white; -fx-padding: 15 25;");
+bar.setAlignment(Pos.CENTER_LEFT);
+bar.setSpacing(15);
 
-        Button backBtn = topBtn();
-        backBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("main"); });
+titleLabel = new Label(getTitle());
+titleLabel.setFont(Font.font("Arial Bold", 22));
+titleLabel.setStyle("-fx-text-fill: #2c3e50;");
 
-        Circle c = new Circle(17);
-        c.setFill(Color.valueOf(getSidebarColor()));
-        Label l = new Label(getSidebarLetter());
-        l.setFont(Font.font("Arial Bold", 13));
-        l.setStyle("-fx-text-fill: white;");
+Region sp = new Region();
+HBox.setHgrow(sp, Priority.ALWAYS);
 
-        bar.getChildren().addAll(title, sp, backBtn, new StackPane(c, l));
-        return bar;
-    }
+Button backBtn = logoutBtn();
+backBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("login"); });
 
-    protected Button topBtn() {
-        Button btn = new Button("Volver");
-        String c = getSidebarColor();
-        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + c + "; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: " + c + "; -fx-border-radius: 8; -fx-padding: 8 18;");
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: " + c + "; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 18;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + c + "; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: " + c + "; -fx-border-radius: 8; -fx-padding: 8 18;"));
+Circle c = new Circle(17);
+c.setFill(Color.valueOf(getSidebarColor()));
+Label l = new Label(getSidebarLetter());
+l.setFont(Font.font("Arial Bold", 13));
+l.setStyle("-fx-text-fill: white;");
+
+bar.getChildren().addAll(titleLabel, sp, backBtn, new StackPane(c, l));
+return bar;
+}
+
+    protected Button logoutBtn() {
+        Button btn = new Button("Cerrar Sesión");
+        btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 18;");
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 18;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-radius: 8; -fx-padding: 8 18;"));
         return btn;
     }
 
@@ -149,21 +172,49 @@ public abstract class BaseDashboardController {
         return f;
     }
 
-    protected Button sidebarBtn(String text, boolean active) {
-        Button btn = new Button(text);
-        btn.setPrefSize(200, 40);
-        btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setFont(Font.font("Arial", 14));
-        String base = active ? "rgba(255,255,255,0.2)" : "transparent";
-        String fg = active ? "white" : "derive(" + getSidebarColor() + ", 60%)";
-        btn.setStyle("-fx-background-color: " + base + "; -fx-text-fill: " + fg + "; -fx-background-radius: 10; -fx-cursor: hand;");
-        return btn;
-    }
+protected Button sidebarBtn(String text, boolean active) {
+Button btn = new Button(text);
+btn.setPrefSize(220, 40);
+btn.setAlignment(Pos.CENTER_LEFT);
+btn.setFont(Font.font("Arial", 14));
+String base = active ? "rgba(255,255,255,0.2)" : "transparent";
+String fg = active ? "white" : "derive(" + getSidebarColor() + ", 60%)";
+btn.setStyle("-fx-background-color: " + base + "; -fx-text-fill: " + fg + "; -fx-background-radius: 10; -fx-cursor: hand;");
+return btn;
+}
 
-    protected void show(String t, String m) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(t); a.setHeaderText(null); a.setContentText(m); a.showAndWait();
-    }
+protected HBox createNotificationBadge() {
+HBox badge = new HBox(10);
+badge.setAlignment(Pos.CENTER_LEFT);
+badge.setPadding(new Insets(10, 10, 10, 10));
+badge.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 8;");
+
+Label notifLabel = new Label("🔔");
+notifLabel.setStyle("-fx-font-size: 18px;");
+
+Label countLabel = new Label(String.valueOf(notificationService.getUnreadCount()));
+countLabel.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 2 6;");
+countLabel.setMinWidth(20);
+countLabel.setAlignment(Pos.CENTER);
+
+Label textLabel = new Label("Notificaciones");
+textLabel.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
+
+badge.getChildren().addAll(notifLabel, countLabel, textLabel);
+
+badge.setOnMouseClicked(e -> {
+currentSection = "view-notifications";
+refreshContent();
+});
+badge.setStyle(badge.getStyle() + " -fx-cursor: hand;");
+
+return badge;
+}
+
+protected void show(String t, String m) {
+Alert a = new Alert(Alert.AlertType.INFORMATION);
+a.setTitle(t); a.setHeaderText(null); a.setContentText(m); a.showAndWait();
+}
 
     protected static class Circle extends javafx.scene.shape.Circle {
         Circle(double r) { super(r); }
