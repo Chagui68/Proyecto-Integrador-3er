@@ -273,7 +273,8 @@ public class RegisterController {
         String role = roleCombo.getValue();
         String user = usernameField.getText().trim();
         String email = emailField.getText().trim();
-        String fullName = fullNameField.getText().trim();
+        String firstName = fullNameField.getText().trim();
+        String lastName = lastnameField.getText().trim();
         String pass = passwordField.getText().trim();
         String confirm = confirmField.getText().trim();
 
@@ -281,7 +282,7 @@ public class RegisterController {
             showAlert("Error", "Por favor seleccione un rol");
             return;
         }
-        if (user.isEmpty() || email.isEmpty() || fullName.isEmpty() || pass.isEmpty()) {
+        if (user.isEmpty() || email.isEmpty() || firstName.isEmpty() || lastName.isEmpty() || pass.isEmpty()) {
             showAlert("Error", "Todos los campos son obligatorios");
             return;
         }
@@ -298,16 +299,18 @@ public class RegisterController {
             return;
         }
 
+        String fullName = firstName + " " + lastName;
+
         if ("Doctor".equals(role)) {
             if (!validateDoctorFields()) return;
             if (authService.register(user, email, pass, fullName, role)) {
                 try {
-            String[] names = splitFullName(fullName);
-            Doctor d = new Doctor(null, names[0], names[1],
-                email, phoneField.getText().trim(), birthDateField.getText().trim(),
-                genderField.getText().trim(), addressField.getText().trim(),
-                specialtyField.getText().trim(), licenseNumberField.getText().trim(), "", 0);
-            doctorService.registerDoctor(d);
+                    String fn = convertDate(birthDateField.getText().trim());
+                    Doctor d = new Doctor(null, firstName, lastName,
+                        email, phoneField.getText().trim(), fn,
+                        genderField.getText().trim(), addressField.getText().trim(),
+                        specialtyField.getText().trim(), licenseNumberField.getText().trim(), "", 0);
+                    doctorService.registerDoctor(d);
                     showAlert("\u00C9xito", "Cuenta creada correctamente. Ahora puedes iniciar sesi\u00F3n.");
                     if (mainController != null) mainController.navigateTo("login");
                 } catch (Exception ex) {
@@ -320,9 +323,8 @@ public class RegisterController {
             if (!validateStudentFields()) return;
             if (authService.register(user, email, pass, fullName, role)) {
                 try {
-                    String[] names = splitFullName(fullName);
                     String fn = convertDate(birthDateField.getText().trim());
-                    Student s = new Student(null, names[0], names[1],
+                    Student s = new Student(null, firstName, lastName,
                             email, phoneField.getText().trim(), fn, genderField.getText().trim(),
                             addressField.getText().trim(), "", semesterCombo.getValue(), null);
                     studentService.registerStudent(s);
@@ -342,13 +344,6 @@ public class RegisterController {
                 showAlert("Error", "No se pudo crear la cuenta");
             }
         }
-    }
-
-    private String[] splitFullName(String fullName) {
-        String[] parts = fullName.trim().split(" ", 2);
-        String first = parts[0];
-        String last = parts.length > 1 ? parts[1] : "";
-        return new String[]{first, last};
     }
 
     private boolean validateStudentFields() {
@@ -381,7 +376,18 @@ public class RegisterController {
         if (date.matches("\\d{4}-\\d{2}-\\d{2}")) return date;
         if (date.contains("/")) {
             String[] p = date.split("/");
-            if (p.length == 3) return String.format("%s-%s-%s", p[2], p[1], p[0]);
+            if (p.length == 3) {
+                String maybeYear = p[2];
+                if (maybeYear.length() == 4) return String.format("%s-%s-%s", p[2], p[1], p[0]);
+                if (p[0].length() == 4) return String.format("%s-%s-%s", p[0], p[1], p[2]);
+            }
+        }
+        if (date.contains("-")) {
+            String[] p = date.split("-");
+            if (p.length == 3) {
+                if (p[2].length() == 4) return String.format("%s-%s-%s", p[2], p[1], p[0]);
+                if (p[0].length() == 4) return String.format("%s-%s-%s", p[0], p[1], p[2]);
+            }
         }
         return date;
     }

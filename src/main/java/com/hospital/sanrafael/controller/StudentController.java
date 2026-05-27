@@ -1,8 +1,10 @@
 package com.hospital.sanrafael.controller;
 
+import com.hospital.sanrafael.model.DataChangeRequest;
 import com.hospital.sanrafael.model.Shift;
 import com.hospital.sanrafael.model.Student;
 import com.hospital.sanrafael.service.AlertService;
+import com.hospital.sanrafael.service.DataChangeRequestService;
 import com.hospital.sanrafael.service.StudentService;
 import com.hospital.sanrafael.view.ViewFactory;
 import javafx.collections.FXCollections;
@@ -15,10 +17,13 @@ import javafx.scene.text.Font;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 
 public class StudentController extends BaseDashboardController {
 private final StudentService studentService;
 private final AlertService alertService;
+private final DataChangeRequestService changeRequestService;
 private TableView<Student> tableView;
 private TextField idField, firstNameField, lastNameField, emailField, phoneField;
 private TextField birthDateField, genderField, addressField;
@@ -30,6 +35,7 @@ public StudentController(ViewFactory viewFactory) {
 this.viewFactory = viewFactory;
 this.studentService = new StudentService();
 this.alertService = AlertService.getInstance();
+this.changeRequestService = DataChangeRequestService.getInstance();
 }
 
     @Override protected String getSidebarColor() { return "#27AE60"; }
@@ -37,23 +43,30 @@ this.alertService = AlertService.getInstance();
     @Override protected String getSidebarLetter() { return "E"; }
     @Override protected String getModuleName() { return "Estudiantes"; }
     @Override protected String getModuleRole() { return "M\u00F3dulo Acad\u00E9mico"; }
-    @Override protected String getTitle() { return "Gesti\u00F3n de Estudiantes"; }
+    @Override protected String getTitle() {
+        if ("requests".equals(currentSection)) return "Solicitudes de Cambio de Datos";
+        if ("view-notifications".equals(currentSection)) return "Notificaciones";
+        return "Gesti\u00F3n de Estudiantes";
+    }
 
     @Override
     protected VBox createSidebarMenuItems() {
         VBox menu = new VBox(5);
         String current = getModuleName();
-        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes"));
-        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores"));
-        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias"));
-        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios"));
-        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros"));
+        boolean isAlt = "requests".equals(currentSection) || "view-notifications".equals(currentSection);
+        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes") && !isAlt);
+        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores") && !isAlt);
+        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias") && !isAlt);
+        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios") && !isAlt);
+        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros") && !isAlt);
+        Button requestsBtn = sidebarBtn("Solicitudes Cambio", "requests".equals(currentSection));
         studentsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("students"); });
         doctorsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("doctors"); });
         subjectsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("subjects"); });
         schedulesBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("schedules"); });
         recordsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("records"); });
-        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn);
+        requestsBtn.setOnAction(e -> { currentSection = "requests"; refreshContent(); });
+        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn, requestsBtn);
         return menu;
     }
 
@@ -62,6 +75,15 @@ this.alertService = AlertService.getInstance();
         VBox content = new VBox(20);
         content.setPadding(new Insets(25));
         content.setStyle("-fx-background-color: #f0f4f8;");
+
+        if ("view-notifications".equals(currentSection)) {
+            content.getChildren().add(createAdminNotificationsSection());
+            return content;
+        }
+        if ("requests".equals(currentSection)) {
+            content.getChildren().add(createRequestsManagementSection());
+            return content;
+        }
 
 HBox stats = new HBox(15);
 int total = studentService.getAllStudents().size();
@@ -152,6 +174,104 @@ grid.add(fieldLabel("Vencimiento ARL:"), 0, r); grid.add(arlDateField = createFi
         );
 
         return content;
+    }
+
+    private VBox createRequestsManagementSection() {
+        VBox section = new VBox(15);
+        section.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
+
+        Label title = new Label("Solicitudes de Cambio de Datos");
+        title.setFont(Font.font("Arial Bold", 16));
+        title.setStyle("-fx-text-fill: #2c3e50;");
+
+        List<DataChangeRequest> pending = changeRequestService.getPendingRequests();
+
+        if (pending.isEmpty()) {
+            Label noPending = new Label("No hay solicitudes pendientes de revisión");
+            noPending.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 14px;");
+            section.getChildren().addAll(title, noPending);
+            return section;
+        }
+
+        Label info = new Label("Solicitudes pendientes: " + pending.size());
+        info.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 13px;");
+        section.getChildren().addAll(title, info);
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        VBox requestList = new VBox(10);
+        requestList.setPadding(new Insets(10, 0, 0, 0));
+
+        for (DataChangeRequest req : pending) {
+            VBox reqBox = new VBox(8);
+            reqBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-padding: 15; -fx-border-color: #e0e0e0; -fx-border-radius: 8;");
+
+            Label whoLabel = new Label("Solicitante: " + req.getRequesterName() + " (" + req.getRequesterRole() + ") - ID: " + req.getEntityId());
+            whoLabel.setFont(Font.font("Arial Bold", 13));
+            whoLabel.setStyle("-fx-text-fill: #2c3e50;");
+
+            Label dateLabel = new Label("Fecha: " + req.getRequestDate());
+            dateLabel.setFont(Font.font("Arial", 11));
+            dateLabel.setStyle("-fx-text-fill: #999;");
+
+            VBox changesBox = new VBox(3);
+            changesBox.setPadding(new Insets(5, 0, 5, 10));
+            Label changesTitle = new Label("Cambios solicitados:");
+            changesTitle.setFont(Font.font("Arial Bold", 12));
+            changesTitle.setStyle("-fx-text-fill: #555;");
+            changesBox.getChildren().add(changesTitle);
+
+            for (Map.Entry<String, String> entry : req.getProposedData().entrySet()) {
+                String fieldName = entry.getKey();
+                String newValue = entry.getValue();
+                String oldValue = req.getOriginalData().get(fieldName);
+                if (oldValue == null) oldValue = "";
+                if (!oldValue.equals(newValue)) {
+                    Label changeLabel = new Label("  " + fieldName + ": '" + oldValue + "' -> '" + newValue + "'");
+                    changeLabel.setFont(Font.font("Arial", 11));
+                    changeLabel.setStyle("-fx-text-fill: #2C3E8F;");
+                    changesBox.getChildren().add(changeLabel);
+                }
+            }
+
+            TextArea reasonArea = new TextArea();
+            reasonArea.setPromptText("Motivo (requerido si se deniega)...");
+            reasonArea.setPrefHeight(60);
+
+            HBox actionButtons = new HBox(10);
+            actionButtons.setAlignment(Pos.CENTER);
+
+            Button approveBtn = actionBtn("Aprobar", "#27AE60");
+            Button denyBtn = actionBtn("Denegar", "#E74C3C");
+
+            approveBtn.setOnAction(e -> {
+                String msg = reasonArea.getText().trim();
+                changeRequestService.approveRequest(req.getId(), msg);
+                show("Solicitud Aprobada", "Los cambios han sido aplicados correctamente.");
+                refreshContent();
+            });
+
+            denyBtn.setOnAction(e -> {
+                String reason = reasonArea.getText().trim();
+                if (reason.isEmpty()) {
+                    show("Error", "Debe escribir un motivo para denegar la solicitud.");
+                    return;
+                }
+                changeRequestService.denyRequest(req.getId(), reason);
+                show("Solicitud Denegada", "La solicitud ha sido denegada. Se notificó al solicitante.");
+                refreshContent();
+            });
+
+            actionButtons.getChildren().addAll(approveBtn, denyBtn);
+            reqBox.getChildren().addAll(whoLabel, dateLabel, changesBox, reasonArea, actionButtons);
+            requestList.getChildren().add(reqBox);
+        }
+
+        scrollPane.setContent(requestList);
+        section.getChildren().add(scrollPane);
+        return section;
     }
 
     private void createColumns() {

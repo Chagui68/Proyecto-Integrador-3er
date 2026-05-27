@@ -4,6 +4,9 @@ import com.hospital.sanrafael.database.DatabaseConnection;
 import com.hospital.sanrafael.model.Shift;
 import com.hospital.sanrafael.model.Student;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,13 +81,7 @@ public class PostgreStudentDAO {
                 stmt1.setString(4, student.getEmail());
                 stmt1.setString(5, student.getPhone());
 
-                String fechaStr = student.getBirthDate();
-                if (fechaStr != null && !fechaStr.isEmpty()) {
-                    java.sql.Date sqlDate = java.sql.Date.valueOf(fechaStr);
-                    stmt1.setDate(6, sqlDate);
-                } else {
-                    stmt1.setDate(6, null);
-                }
+                stmt1.setDate(6, parseDateSafe(student.getBirthDate()));
 
                 stmt1.setString(7, student.getGender());
                 stmt1.setString(8, student.getAddress());
@@ -96,7 +93,7 @@ public class PostgreStudentDAO {
                 stmt2.setString(1, student.getId());
                 stmt2.setString(2, student.getCareer());
                 stmt2.setInt(3, student.getSemester());
-                stmt2.setString(4, student.getShift().getDisplayName());
+                stmt2.setString(4, student.getShift() != null ? student.getShift().getDisplayName() : null);
                 int rows2 = stmt2.executeUpdate();
                 System.out.println("   -> Rows inserted in estudiante: " + rows2);
             }
@@ -133,7 +130,7 @@ public class PostgreStudentDAO {
                 stmt1.setString(2, student.getLastName());
                 stmt1.setString(3, student.getEmail());
                 stmt1.setString(4, student.getPhone());
-                stmt1.setString(5, student.getBirthDate());
+                stmt1.setDate(5, parseDateSafe(student.getBirthDate()));
                 stmt1.setString(6, student.getGender());
                 stmt1.setString(7, student.getAddress());
                 stmt1.setString(8, student.getId());
@@ -143,7 +140,7 @@ public class PostgreStudentDAO {
             try (PreparedStatement stmt2 = conn.prepareStatement(updateStudent)) {
                 stmt2.setString(1, student.getCareer());
                 stmt2.setInt(2, student.getSemester());
-                stmt2.setString(3, student.getShift().getDisplayName());
+                stmt2.setString(3, student.getShift() != null ? student.getShift().getDisplayName() : null);
                 stmt2.setString(4, student.getId());
                 stmt2.executeUpdate();
             }
@@ -171,6 +168,23 @@ public class PostgreStudentDAO {
             System.err.println("Error deleting student: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Error deleting from database: " + e.getMessage(), e);
+        }
+    }
+
+    private java.sql.Date parseDateSafe(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        dateStr = dateStr.trim();
+        String[] formats = {"yyyy-MM-dd", "dd/MM/yyyy", "yyyy/MM/dd", "dd-MM-yyyy"};
+        for (String fmt : formats) {
+            try {
+                return java.sql.Date.valueOf(LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(fmt)));
+            } catch (DateTimeParseException e) {}
+        }
+        try {
+            return java.sql.Date.valueOf(dateStr);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Cannot parse date: " + dateStr);
+            return null;
         }
     }
 

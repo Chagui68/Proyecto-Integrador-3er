@@ -92,6 +92,12 @@ DoctorDashboardController doctorDashController = new DoctorDashboardController(v
 doctorDashController.setMainController(this);
 scene = new Scene(doctorDashController.getView(), 1400, 750);
 break;
+case "change-requests":
+StudentController requestsController = new StudentController(viewFactory);
+requestsController.setMainController(this);
+requestsController.setCurrentSection("requests");
+scene = new Scene(requestsController.getView(), 1400, 750);
+break;
 default:
 MainMenuController mmc = new MainMenuController(viewFactory);
 mmc.setMainController(this);

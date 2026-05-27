@@ -67,6 +67,26 @@ public class NotificationService {
         return unreadCount;
     }
 
+    public int getUnreadCountForPerson(String personId) {
+        int count = 0;
+        for (Notification n : notifications) {
+            if (!n.isRead() && personId.equals(n.getPersonId())) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public int getUnreadCountForAdmin() {
+        int count = 0;
+        for (Notification n : notifications) {
+            if (!n.isRead() && ("admin".equals(n.getPersonId()) || n.getPersonId() == null)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public List<Notification> getNotificationsByPerson(String personId) {
         List<Notification> result = new ArrayList<>();
         for (Notification n : notifications) {

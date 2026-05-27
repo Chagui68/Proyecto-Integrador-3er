@@ -33,23 +33,29 @@ this.alertService = AlertService.getInstance();
 @Override protected String getSidebarLetter() { return "R"; }
 @Override protected String getModuleName() { return "Registros"; }
 @Override protected String getModuleRole() { return "M\u00F3dulo de Ingreso"; }
-@Override protected String getTitle() { return "Registro de Ingreso"; }
+@Override protected String getTitle() {
+    if ("view-notifications".equals(currentSection)) return "Notificaciones";
+    return "Registro de Ingreso";
+}
 
 @Override
 protected VBox createSidebarMenuItems() {
 VBox menu = new VBox(5);
 String current = getModuleName();
-Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes"));
-Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores"));
-Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias"));
-Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios"));
-Button recordsBtn = sidebarBtn("Registros", current.equals("Registros"));
+boolean isAlt = "view-notifications".equals(currentSection);
+Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes") && !isAlt);
+Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores") && !isAlt);
+Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias") && !isAlt);
+Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios") && !isAlt);
+Button recordsBtn = sidebarBtn("Registros", current.equals("Registros") && !isAlt);
+Button requestsBtn = sidebarBtn("Solicitudes Cambio", false);
 studentsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("students"); });
 doctorsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("doctors"); });
 subjectsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("subjects"); });
 schedulesBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("schedules"); });
 recordsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("records"); });
-menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn);
+requestsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("change-requests"); });
+menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn, requestsBtn);
 return menu;
 }
 
@@ -57,6 +63,11 @@ return menu;
 protected VBox createContent() {
 VBox content = new VBox(20);
 content.setPadding(new Insets(25));
+
+if ("view-notifications".equals(currentSection)) {
+    content.getChildren().add(createAdminNotificationsSection());
+    return content;
+}
 content.setStyle("-fx-background-color: #f0f4f8;");
 
 HBox stats = new HBox(15);

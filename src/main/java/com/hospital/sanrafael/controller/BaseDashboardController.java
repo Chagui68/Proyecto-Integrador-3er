@@ -36,6 +36,10 @@ protected String currentSection = "profile";
         this.mainController = controller;
     }
 
+    public void setCurrentSection(String section) {
+        this.currentSection = section;
+    }
+
     public Pane getView() {
         root = new BorderPane();
         root.setStyle("-fx-background-color: #f0f4f8;");
@@ -192,7 +196,7 @@ badge.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-background-radi
 Label notifLabel = new Label("🔔");
 notifLabel.setStyle("-fx-font-size: 18px;");
 
-Label countLabel = new Label(String.valueOf(notificationService.getUnreadCount()));
+Label countLabel = new Label(String.valueOf(getFilteredNotificationCount()));
 countLabel.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 2 6;");
 countLabel.setMinWidth(20);
 countLabel.setAlignment(Pos.CENTER);
@@ -211,10 +215,68 @@ badge.setStyle(badge.getStyle() + " -fx-cursor: hand;");
 return badge;
 }
 
-protected void show(String t, String m) {
-Alert a = new Alert(Alert.AlertType.INFORMATION);
-a.setTitle(t); a.setHeaderText(null); a.setContentText(m); a.showAndWait();
+protected int getFilteredNotificationCount() {
+var user = mainController != null ? mainController.getCurrentUser() : null;
+if (user == null) return 0;
+String role = user.getRole();
+if ("Administrador".equals(role)) {
+return notificationService.getUnreadCountForAdmin();
 }
+return notificationService.getUnreadCount();
+}
+
+    protected VBox createAdminNotificationsSection() {
+        VBox section = new VBox(15);
+        section.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
+        Label title = new Label("Notificaciones");
+        title.setFont(Font.font("Arial Bold", 16));
+        title.setStyle("-fx-text-fill: #2c3e50;");
+        var notifList = notificationService.getAllNotifications().stream()
+                .filter(n -> "admin".equals(n.getPersonId()) || n.getPersonId() == null)
+                .toList();
+        if (notifList.isEmpty()) {
+            Label empty = new Label("No hay notificaciones");
+            empty.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 14px;");
+            section.getChildren().addAll(title, empty);
+            return section;
+        }
+        Label count = new Label("Total: " + notifList.size());
+        count.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 13px;");
+        VBox list = new VBox(8);
+        list.setPadding(new Insets(10, 0, 0, 0));
+        for (var n : notifList) {
+            VBox card = new VBox(4);
+            card.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8; -fx-padding: 12; -fx-border-color: #e0e0e0; -fx-border-radius: 8;");
+            Label header = new Label("[" + n.getType() + "] " + n.getMessage());
+            header.setFont(Font.font("Arial Bold", 12));
+            header.setStyle("-fx-text-fill: #2c3e50;");
+            card.getChildren().add(header);
+            if (n.getDetails() != null && !n.getDetails().isEmpty()) {
+                Label detail = new Label(n.getDetails());
+                detail.setFont(Font.font("Arial", 11));
+                detail.setStyle("-fx-text-fill: #555;");
+                card.getChildren().add(detail);
+            }
+            if (n.getPersonName() != null) {
+                Label from = new Label("De: " + n.getPersonName());
+                from.setFont(Font.font("Arial", 10));
+                from.setStyle("-fx-text-fill: #2C3E8F;");
+                card.getChildren().add(from);
+            }
+            Label date = new Label("Fecha: " + n.getDate());
+            date.setFont(Font.font("Arial", 10));
+            date.setStyle("-fx-text-fill: #999;");
+            card.getChildren().add(date);
+            list.getChildren().add(card);
+        }
+        section.getChildren().addAll(title, count, list);
+        return section;
+    }
+
+    protected void show(String t, String m) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(t); a.setHeaderText(null); a.setContentText(m); a.showAndWait();
+    }
 
     protected static class Circle extends javafx.scene.shape.Circle {
         Circle(double r) { super(r); }

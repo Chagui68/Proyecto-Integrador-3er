@@ -12,6 +12,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class ScheduleController extends BaseDashboardController {
     private final StudentService studentService;
@@ -19,7 +21,8 @@ public class ScheduleController extends BaseDashboardController {
     private TableView<Schedule> tableView;
     private ComboBox<String> typeCombo;
     private TextField idField;
-    private TextField dayField, startTimeField, endTimeField;
+    private DatePicker dayPicker;
+    private TextField startTimeField, endTimeField;
     private TextField activityField, responsibleField, classroomField;
     private Label personInfoLabel;
     private String currentPersonId;
@@ -36,23 +39,29 @@ public class ScheduleController extends BaseDashboardController {
     @Override protected String getSidebarLetter() { return "H"; }
     @Override protected String getModuleName() { return "Horarios"; }
     @Override protected String getModuleRole() { return "Gesti\u00F3n de Horarios"; }
-    @Override protected String getTitle() { return "Gesti\u00F3n de Horarios"; }
+    @Override protected String getTitle() {
+        if ("view-notifications".equals(currentSection)) return "Notificaciones";
+        return "Gesti\u00F3n de Horarios";
+    }
 
     @Override
     protected VBox createSidebarMenuItems() {
         VBox menu = new VBox(5);
         String current = getModuleName();
-        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes"));
-        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores"));
-        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias"));
-        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios"));
-        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros"));
+        boolean isAlt = "view-notifications".equals(currentSection);
+        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes") && !isAlt);
+        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores") && !isAlt);
+        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias") && !isAlt);
+        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios") && !isAlt);
+        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros") && !isAlt);
+        Button requestsBtn = sidebarBtn("Solicitudes Cambio", false);
         studentsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("students"); });
         doctorsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("doctors"); });
         subjectsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("subjects"); });
         schedulesBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("schedules"); });
         recordsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("records"); });
-        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn);
+        requestsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("change-requests"); });
+        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn, requestsBtn);
         return menu;
     }
 
@@ -61,6 +70,11 @@ public class ScheduleController extends BaseDashboardController {
         VBox content = new VBox(20);
         content.setPadding(new Insets(25));
         content.setStyle("-fx-background-color: #f0f4f8;");
+
+        if ("view-notifications".equals(currentSection)) {
+            content.getChildren().add(createAdminNotificationsSection());
+            return content;
+        }
 
         HBox searchRow = new HBox(12);
         searchRow.setAlignment(Pos.CENTER_LEFT);
@@ -118,7 +132,15 @@ public class ScheduleController extends BaseDashboardController {
         grid.setHgap(12);
         grid.setVgap(10);
 
-        dayField = createField();
+        dayPicker = new DatePicker();
+        dayPicker.setValue(LocalDate.now());
+        dayPicker.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(LocalDate.now()));
+            }
+        });
         startTimeField = createField();
         endTimeField = createField();
         activityField = createField();
@@ -126,12 +148,12 @@ public class ScheduleController extends BaseDashboardController {
         classroomField = createField();
 
         int r = 0;
-        grid.add(fieldLabel("D\u00EDa:"), 0, r); grid.add(dayField, 1, r++);
-        grid.add(fieldLabel("Hora Inicio:"), 2, 0); grid.add(startTimeField, 3, 0);
-        grid.add(fieldLabel("Hora Fin:"), 0, r); grid.add(endTimeField, 1, r);
-        grid.add(fieldLabel("Actividad:"), 2, r); grid.add(activityField, 3, r++);
-        grid.add(fieldLabel("Responsable:"), 0, r); grid.add(responsibleField, 1, r);
-        grid.add(fieldLabel("Aula:"), 2, r); grid.add(classroomField, 3, r++);
+        grid.add(fieldLabel("D\u00EDa:"), 0, r); grid.add(dayPicker, 1, r++);
+        grid.add(fieldLabel("Hora Inicio:"), 0, r); grid.add(startTimeField, 1, r);
+        grid.add(fieldLabel("Hora Fin:"), 2, r); grid.add(endTimeField, 3, r++);
+        grid.add(fieldLabel("Actividad:"), 0, r); grid.add(activityField, 1, r);
+        grid.add(fieldLabel("Responsable:"), 2, r); grid.add(responsibleField, 3, r++);
+        grid.add(fieldLabel("Aula:"), 0, r); grid.add(classroomField, 1, r++);
 
         HBox buttons = new HBox(12);
         buttons.setAlignment(Pos.CENTER);
@@ -188,6 +210,7 @@ public class ScheduleController extends BaseDashboardController {
                 return;
             }
             personInfoLabel.setText("Dr. " + doc.getFullName() + "  " + doc.getSpecialty());
+            responsibleField.setText("Dr. " + doc.getFullName());
             tableView.setItems(FXCollections.observableArrayList(doc.getCareSchedule()));
         } else {
             Student est = studentService.getStudentById(id);
@@ -198,6 +221,7 @@ public class ScheduleController extends BaseDashboardController {
                 return;
             }
             personInfoLabel.setText(est.getFullName() + "  " + est.getCareer() + " (" + est.getSemester() + "\u00B0 Semestre)");
+            responsibleField.setText(est.getFullName());
             tableView.setItems(FXCollections.observableArrayList(est.getWeeklySchedule()));
         }
     }
@@ -209,8 +233,14 @@ public class ScheduleController extends BaseDashboardController {
         }
 
         try {
+            LocalDate selected = dayPicker.getValue();
+            if (selected == null) {
+                show("Error", "Seleccione una fecha");
+                return;
+            }
             Schedule h = new Schedule(
-                dayField.getText(), startTimeField.getText(), endTimeField.getText(),
+                selected.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                startTimeField.getText(), endTimeField.getText(),
                 activityField.getText(), responsibleField.getText(), classroomField.getText()
             );
 
@@ -224,7 +254,6 @@ public class ScheduleController extends BaseDashboardController {
                 Student est = studentService.getStudentById(currentPersonId);
                 if (est != null) {
                     est.addSchedule(h);
-                    studentService.updateStudent(est);
                     tableView.setItems(FXCollections.observableArrayList(est.getWeeklySchedule()));
                 }
             }
@@ -258,7 +287,6 @@ public class ScheduleController extends BaseDashboardController {
                 Student est = studentService.getStudentById(currentPersonId);
                 if (est != null) {
                     est.getWeeklySchedule().remove(selected);
-                    studentService.updateStudent(est);
                     tableView.setItems(FXCollections.observableArrayList(est.getWeeklySchedule()));
                 }
             }
@@ -269,7 +297,8 @@ public class ScheduleController extends BaseDashboardController {
     }
 
     private void clearFormSchedule() {
-        dayField.clear(); startTimeField.clear(); endTimeField.clear();
+        dayPicker.setValue(LocalDate.now());
+        startTimeField.clear(); endTimeField.clear();
         activityField.clear(); responsibleField.clear(); classroomField.clear();
     }
 }

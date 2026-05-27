@@ -3,6 +3,9 @@ package com.hospital.sanrafael.dao;
 import com.hospital.sanrafael.database.DatabaseConnection;
 import com.hospital.sanrafael.model.Doctor;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,12 +76,7 @@ public class PostgreDoctorDAO {
                 stmt1.setString(3, doctor.getLastName());
                 stmt1.setString(4, doctor.getEmail());
                 stmt1.setString(5, doctor.getPhone());
-                String fechaStr = doctor.getBirthDate();
-                if (fechaStr != null && !fechaStr.isEmpty()) {
-                    stmt1.setDate(6, java.sql.Date.valueOf(fechaStr));
-                } else {
-                    stmt1.setDate(6, null);
-                }
+                stmt1.setDate(6, parseDateSafe(doctor.getBirthDate()));
                 stmt1.setString(7, doctor.getGender());
                 stmt1.setString(8, doctor.getAddress());
                 stmt1.executeUpdate();
@@ -204,6 +202,23 @@ public class PostgreDoctorDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private java.sql.Date parseDateSafe(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        dateStr = dateStr.trim();
+        String[] formats = {"yyyy-MM-dd", "dd/MM/yyyy", "yyyy/MM/dd", "dd-MM-yyyy"};
+        for (String fmt : formats) {
+            try {
+                return java.sql.Date.valueOf(LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(fmt)));
+            } catch (DateTimeParseException e) {}
+        }
+        try {
+            return java.sql.Date.valueOf(dateStr);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Cannot parse date: " + dateStr);
+            return null;
+        }
     }
 
     private Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {

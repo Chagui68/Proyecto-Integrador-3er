@@ -27,23 +27,29 @@ public class SubjectsController extends BaseDashboardController {
     @Override protected String getSidebarLetter() { return "M"; }
     @Override protected String getModuleName() { return "Materias"; }
     @Override protected String getModuleRole() { return "M\u00F3dulo Acad\u00E9mico"; }
-    @Override protected String getTitle() { return "Gesti\u00F3n de Materias"; }
+    @Override protected String getTitle() {
+        if ("view-notifications".equals(currentSection)) return "Notificaciones";
+        return "Gesti\u00F3n de Materias";
+    }
 
     @Override
     protected VBox createSidebarMenuItems() {
         VBox menu = new VBox(5);
         String current = getModuleName();
-        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes"));
-        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores"));
-        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias"));
-        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios"));
-        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros"));
+        boolean isAlt = "view-notifications".equals(currentSection);
+        Button studentsBtn = sidebarBtn("Gestion Estudiantes", current.equals("Estudiantes") && !isAlt);
+        Button doctorsBtn = sidebarBtn("Gestion Doctores", current.equals("Doctores") && !isAlt);
+        Button subjectsBtn = sidebarBtn("Materias", current.equals("Materias") && !isAlt);
+        Button schedulesBtn = sidebarBtn("Horarios", current.equals("Horarios") && !isAlt);
+        Button recordsBtn = sidebarBtn("Registros", current.equals("Registros") && !isAlt);
+        Button requestsBtn = sidebarBtn("Solicitudes Cambio", false);
         studentsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("students"); });
         doctorsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("doctors"); });
         subjectsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("subjects"); });
         schedulesBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("schedules"); });
         recordsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("records"); });
-        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn);
+        requestsBtn.setOnAction(e -> { if (mainController != null) mainController.navigateTo("change-requests"); });
+        menu.getChildren().addAll(studentsBtn, doctorsBtn, subjectsBtn, schedulesBtn, recordsBtn, requestsBtn);
         return menu;
     }
 
@@ -52,6 +58,11 @@ public class SubjectsController extends BaseDashboardController {
         VBox content = new VBox(20);
         content.setPadding(new Insets(25));
         content.setStyle("-fx-background-color: #f0f4f8;");
+
+        if ("view-notifications".equals(currentSection)) {
+            content.getChildren().add(createAdminNotificationsSection());
+            return content;
+        }
 
         HBox stats = new HBox(15);
         int total = subjectService.getAllSubjects().size();
