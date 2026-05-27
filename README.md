@@ -9,6 +9,8 @@ Sistema integral de gestión para estudiantes y doctores del Hospital San Rafael
 
 ##  Descripción
 
+![Vista del sistema](imagenes_readme/img.png)
+
 Este sistema permite:
 -  **Gestión de Estudiantes**: Registro, edición, eliminación y consulta
 -  **Gestión de Doctores**: Control de personal médico y especialidades
@@ -73,6 +75,10 @@ O usa el script incluido:
 
 ##  Uso Básico
 
+### Vista Principal
+
+![Vista principal del sistema](imagenes_readme/img_1.png)
+
 ### Registrar un Estudiante
 1. Ve a **Gestión de Estudiantes**
 2. Click en **Nuevo**
@@ -85,15 +91,14 @@ O usa el script incluido:
    - **Turno**: `Mañana`, `Tarde` o `Noche` (exactamente así)
 4. Click en **Guardar**
 
-### Consultar en PostgreSQL
-Para verificar que los datos se guardaron:
-```sql
-SELECT p.id, p.nombre, p.apellido, e.carrera, e.semestre
-FROM persona p
-JOIN estudiante e ON p.id = e.id_persona
-WHERE p.tipo_persona = 'ESTUDIANTE'
-ORDER BY p.fecha_creacion DESC;
-```
+### Interfaz de cambios o dashboard
+
+![Interfaz de cambios o dashboard](imagenes_readme/img_2.png)
+
+Esta vista muestra el panel principal con las estadísticas y controles del sistema.
+
+
+
 
 ## ️ Estructura del Proyecto
 
